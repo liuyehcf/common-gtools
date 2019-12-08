@@ -1,8 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"github.com/liuyehcf/common-gtools/assert"
-	buffer2 "github.com/liuyehcf/common-gtools/buffer"
+	buf "github.com/liuyehcf/common-gtools/buffer"
 	"math/rand"
 )
 
@@ -10,10 +11,11 @@ func main() {
 	case1()
 	case2()
 	case3()
+	demo()
 }
 
 func case1() {
-	buffer := buffer2.NewByteBuffer(5)
+	buffer := buf.NewByteBuffer(5)
 	assert.AssertTrue(buffer.ReadableBytes() == 0, "test")
 	assert.AssertTrue(buffer.ReadIndex() == 0, "test")
 	assert.AssertTrue(buffer.WriteIndex() == 0, "test")
@@ -56,7 +58,7 @@ func case1() {
 }
 
 func case2() {
-	buffer := buffer2.NewByteBuffer(100)
+	buffer := buf.NewByteBuffer(100)
 
 	for i := 0; i < 100; i += 1 {
 		bytes := make([]byte, i)
@@ -78,7 +80,7 @@ func case2() {
 }
 
 func case3() {
-	buffer := buffer2.NewByteBuffer(6)
+	buffer := buf.NewByteBuffer(6)
 	buffer.Write([]byte{1, 2, 3, 4, 5, 6})
 
 	assert.AssertTrue(buffer.ReadableBytes() == 6, "test")
@@ -103,4 +105,32 @@ func case3() {
 	assert.AssertTrue(buffer.ReadableBytes() == 0, "test")
 	assert.AssertTrue(buffer.ReadIndex() == 0, "test")
 	assert.AssertTrue(buffer.WriteIndex() == 0, "test")
+}
+
+func demo() {
+	buffer := buf.NewByteBuffer(10)
+
+	buffer.Write([]byte{1, 2, 3, 4, 5})
+
+	buffer.Mark()
+
+	fmt.Printf("after write, readableBytes=%d\n", buffer.ReadableBytes())
+	bytes := make([]byte, 5)
+	buffer.Read(bytes)
+	fmt.Println(bytes)
+	fmt.Printf("after read, readableBytes=%d\n", buffer.ReadableBytes())
+
+	buffer.Recover()
+	fmt.Printf("after recover, readableBytes=%d\n", buffer.ReadableBytes())
+	bytes = make([]byte, 5)
+	buffer.Read(bytes)
+	fmt.Println(bytes)
+	fmt.Printf("after read, readableBytes=%d\n", buffer.ReadableBytes())
+
+	buffer.Write([]byte{6, 7, 8, 9, 10})
+	fmt.Printf("after write, readableBytes=%d\n", buffer.ReadableBytes())
+	bytes = make([]byte, 5)
+	buffer.Read(bytes)
+	fmt.Println(bytes)
+	fmt.Printf("after read, readableBytes=%d\n", buffer.ReadableBytes())
 }
