@@ -168,14 +168,16 @@ func NewFileAppender(config *AppenderConfig) *FileAppender {
 	go appender.onEventLoop()
 	switch policy.TimeGranularity {
 	case TimeGranularityHour:
-		appender.cron.AddFunc("@hourly", func() {
+		_, err := appender.cron.AddFunc("@hourly", func() {
 			appender.rollingByTimer()
 		})
+		assert.AssertNil(err, "failed to add cron func")
 		break
 	case TimeGranularityDay:
-		appender.cron.AddFunc("@daily", func() {
+		_, err := appender.cron.AddFunc("@daily", func() {
 			appender.rollingByTimer()
 		})
+		assert.AssertNil(err, "failed to add cron func")
 		break
 	}
 
@@ -184,7 +186,7 @@ func NewFileAppender(config *AppenderConfig) *FileAppender {
 
 func (appender *FileAppender) Destroy() {
 	appender.cron.Stop()
-	appender.file.Close()
+	_ = appender.file.Close()
 	close(appender.queue)
 }
 
@@ -291,7 +293,7 @@ func (appender *FileAppender) rollingFilesByHourGranularity(allRollingFileMetas 
 		removedFileMetas := allRollingFileMetas[:len(allRollingFileMetas)-policy.MaxHistory]
 
 		for _, removedFileMeta := range removedFileMetas {
-			os.Remove(removedFileMeta.abstractPath)
+			_ = os.Remove(removedFileMeta.abstractPath)
 		}
 
 		allRollingFileMetas = allRollingFileMetas[len(allRollingFileMetas)-policy.MaxHistory:]
@@ -311,13 +313,13 @@ func (appender *FileAppender) rollingFilesByHourGranularity(allRollingFileMetas 
 		fileMeta := fileMetasOfCurHour[i]
 
 		// dir/xxx.2006-01-02.08.1.log
-		os.Rename(fileMeta.abstractPath,
+		_ = os.Rename(fileMeta.abstractPath,
 			fmt.Sprintf("%s.%s.%s.%d%s", appender.fileAbstractName, fileMeta.day, fileMeta.hour, fileMeta.indexValue+1, fileSuffix))
 	}
 
-	appender.file.Close()
+	_ = appender.file.Close()
 
-	os.Rename(appender.fileAbstractPath,
+	_ = os.Rename(appender.fileAbstractPath,
 		fmt.Sprintf("%s.%s.%02d.%d%s", appender.fileAbstractName, dayFormatted, hour, 0, fileSuffix))
 
 	appender.createFileIfNecessary()
@@ -337,7 +339,7 @@ func (appender *FileAppender) rollingFilesByDayGranularity(allRollingFileMetas f
 		removedFileMetas := allRollingFileMetas[:len(allRollingFileMetas)-policy.MaxHistory]
 
 		for _, removedFileMeta := range removedFileMetas {
-			os.Remove(removedFileMeta.abstractPath)
+			_ = os.Remove(removedFileMeta.abstractPath)
 		}
 
 		allRollingFileMetas = allRollingFileMetas[len(allRollingFileMetas)-policy.MaxHistory:]
@@ -356,13 +358,13 @@ func (appender *FileAppender) rollingFilesByDayGranularity(allRollingFileMetas f
 	for i := 0; i < fileMetasOfCurDay.Len(); i += 1 {
 		fileMeta := fileMetasOfCurDay[i]
 
-		os.Rename(fileMeta.abstractPath,
+		_ = os.Rename(fileMeta.abstractPath,
 			fmt.Sprintf("%s.%s.%d%s", appender.fileAbstractName, fileMeta.day, fileMeta.indexValue+1, fileSuffix))
 	}
 
-	appender.file.Close()
+	_ = appender.file.Close()
 
-	os.Rename(appender.fileAbstractPath,
+	_ = os.Rename(appender.fileAbstractPath,
 		fmt.Sprintf("%s.%s.%d%s", appender.fileAbstractName, dayFormatted, 0, fileSuffix))
 
 	appender.createFileIfNecessary()
