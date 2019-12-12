@@ -7,7 +7,8 @@ import (
 )
 
 func main() {
-	layout := "%-24d{2006-01-02 15:04:05.999} [%-5p] %m%n"
+	leftAlign := "%-30d{2006-01-02 15:04:05.999} [%-10p] %-1m%n"
+	rightAlign := "%30d{2006-01-02 15:04:05.999} [%10p] %1m%n"
 	infoLevelFilter := &log.LevelFilter{
 		LogLevelThreshold: log.InfoLevel,
 	}
@@ -15,18 +16,18 @@ func main() {
 		LogLevelThreshold: log.ErrorLevel,
 	}
 	stdoutAppender := log.NewWriterAppender(&log.AppenderConfig{
-		Layout:  layout,
+		Layout:  leftAlign,
 		Filters: []log.Filter{infoLevelFilter},
 		Writer:  os.Stdout,
 	})
 	stderrAppender := log.NewWriterAppender(&log.AppenderConfig{
-		Layout:  layout,
+		Layout:  rightAlign,
 		Filters: []log.Filter{errorLevelFilter},
 		Writer:  os.Stderr,
 	})
 
 	commonFileAppender := log.NewFileAppender(&log.AppenderConfig{
-		Layout:  layout,
+		Layout:  leftAlign,
 		Filters: []log.Filter{infoLevelFilter},
 		FileRollingPolicy: &log.RollingPolicy{
 			Directory:       "/tmp/gtools/logs",
@@ -38,7 +39,7 @@ func main() {
 	})
 
 	errorFileAppender := log.NewFileAppender(&log.AppenderConfig{
-		Layout:  layout,
+		Layout:  rightAlign,
 		Filters: []log.Filter{errorLevelFilter},
 		FileRollingPolicy: &log.RollingPolicy{
 			Directory:       "/tmp/gtools/logs",

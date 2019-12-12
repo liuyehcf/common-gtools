@@ -42,7 +42,7 @@ func (converter *AbstractConverter) truncAlign(content string) string {
 
 	runes := []rune(content)
 	if len(runes) >= converter.width {
-		return string(runes[:converter.width])
+		return content
 	} else {
 		extensionRunes := make([]rune, converter.width)
 		if converter.alignType == leftAlign {
