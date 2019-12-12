@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	layout := "%d{2006-01-02 15:04:05.999} [%p] %m%n"
+	layout := "%-24d{2006-01-02 15:04:05.999} [%-5p] %m%n"
 	infoLevelFilter := &log.LevelFilter{
 		LogLevelThreshold: log.InfoLevel,
 	}
