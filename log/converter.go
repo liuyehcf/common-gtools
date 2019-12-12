@@ -36,7 +36,7 @@ func (converter *AbstractConverter) GetNext() Converter {
 }
 
 func (converter *AbstractConverter) truncAlign(content string) string {
-	if unlimitedWidth == converter.width {
+	if converter.width == unlimitedWidth {
 		return content
 	}
 
@@ -45,7 +45,7 @@ func (converter *AbstractConverter) truncAlign(content string) string {
 		return string(runes[:converter.width])
 	} else {
 		extensionRunes := make([]rune, converter.width)
-		if leftAlign == converter.alignType {
+		if converter.alignType == leftAlign {
 			copy(extensionRunes[:len(runes)], runes)
 
 			for i := len(runes); i < len(extensionRunes); i += 1 {

@@ -41,7 +41,7 @@ func NewFileMeta(abstractPath string, day string, hour string, index string) *Fi
 	var indexValue int
 	var err error
 
-	if emptyString == day {
+	if day == emptyString {
 		dayValue = -1
 	} else {
 		dayTime, err := time.Parse(formatDay, day)
@@ -52,7 +52,7 @@ func NewFileMeta(abstractPath string, day string, hour string, index string) *Fi
 		dayValue = dayTime.Second()
 	}
 
-	if emptyString == hour {
+	if hour == emptyString {
 		hourValue = -1
 	} else {
 		hourValue, err = strconv.Atoi(hour)
@@ -61,7 +61,7 @@ func NewFileMeta(abstractPath string, day string, hour string, index string) *Fi
 		}
 	}
 
-	if emptyString == index {
+	if index == emptyString {
 		indexValue = -1
 	} else {
 		indexValue, err = strconv.Atoi(index)

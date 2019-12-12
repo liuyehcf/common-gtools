@@ -36,11 +36,11 @@ func Format(format string, values ...interface{}) string {
 
 		needAppend := true
 
-		if placeHolderStart == c {
+		if c == placeHolderStart {
 			if !isPreEscapeChar {
 				isCurPlaceHolderStart = true
 			}
-		} else if placeHolderStop == c {
+		} else if c == placeHolderStop {
 			// if there is no more value to replace the remaining placeholders, we just keep the original string
 			if !isNoMoreValue && isPrePlaceHolderStart {
 				needAppend = false
@@ -55,7 +55,7 @@ func Format(format string, values ...interface{}) string {
 					isNoMoreValue = true
 				}
 			}
-		} else if escapeChar == c {
+		} else if c == escapeChar {
 			if !isPreEscapeChar {
 				isCurEscapeChar = true
 			}
