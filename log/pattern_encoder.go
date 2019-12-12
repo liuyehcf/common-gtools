@@ -63,16 +63,18 @@ func (encoder *PatternEncoder) initConverterChain() {
 		c := runes[index]
 
 		if c == percent {
+			index += 1
+
 			// parse align
-			alignType, offset := getAlignType(runes, index+1)
+			alignType, offset := getAlignType(runes, index)
 			index += offset
 
 			// parse width
-			width, offset := getWidth(runes, index+1)
+			width, offset := getWidth(runes, index)
 			index += offset
 
-			if ok, offset := matchesConversion(runes, index+1, date); ok {
-				index += offset + 1
+			if ok, offset := matchesConversion(runes, index, date); ok {
+				index += offset
 
 				c = runes[index]
 				if c != placeHolderStart {
@@ -111,7 +113,7 @@ func (encoder *PatternEncoder) initConverterChain() {
 				converter = nextConverter
 
 				index += 1
-			} else if ok, offset := matchesConversion(runes, index+1, level); ok {
+			} else if ok, offset := matchesConversion(runes, index, level); ok {
 				nextConverter := &LevelConverter{
 					AbstractConverter: AbstractConverter{
 						alignType: alignType,
@@ -121,8 +123,8 @@ func (encoder *PatternEncoder) initConverterChain() {
 				converter.SetNext(nextConverter)
 				converter = nextConverter
 
-				index += offset + 1
-			} else if ok, offset := matchesConversion(runes, index+1, message); ok {
+				index += offset
+			} else if ok, offset := matchesConversion(runes, index, message); ok {
 				nextConverter := &MessageConverter{
 					AbstractConverter: AbstractConverter{
 						alignType: alignType,
@@ -132,8 +134,8 @@ func (encoder *PatternEncoder) initConverterChain() {
 				converter.SetNext(nextConverter)
 				converter = nextConverter
 
-				index += offset + 1
-			} else if ok, offset := matchesConversion(runes, index+1, newline); ok {
+				index += offset
+			} else if ok, offset := matchesConversion(runes, index, newline); ok {
 				nextConverter := &NewlineConverter{
 					AbstractConverter: AbstractConverter{
 						alignType: alignType,
@@ -143,7 +145,7 @@ func (encoder *PatternEncoder) initConverterChain() {
 				converter.SetNext(nextConverter)
 				converter = nextConverter
 
-				index += offset + 1
+				index += offset
 			} else {
 				panic("unsupported pattern '" + encoder.layout + "'")
 			}
