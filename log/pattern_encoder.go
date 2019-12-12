@@ -114,6 +114,7 @@ func (encoder *PatternEncoder) initConverterChain() {
 
 				index += 1
 			} else if ok, offset := matchesConversion(runes, index, level); ok {
+				index += offset
 				nextConverter := &LevelConverter{
 					AbstractConverter: AbstractConverter{
 						alignType: alignType,
@@ -122,9 +123,8 @@ func (encoder *PatternEncoder) initConverterChain() {
 				}
 				converter.SetNext(nextConverter)
 				converter = nextConverter
-
-				index += offset
 			} else if ok, offset := matchesConversion(runes, index, message); ok {
+				index += offset
 				nextConverter := &MessageConverter{
 					AbstractConverter: AbstractConverter{
 						alignType: alignType,
@@ -133,9 +133,8 @@ func (encoder *PatternEncoder) initConverterChain() {
 				}
 				converter.SetNext(nextConverter)
 				converter = nextConverter
-
-				index += offset
 			} else if ok, offset := matchesConversion(runes, index, newline); ok {
+				index += offset
 				nextConverter := &NewlineConverter{
 					AbstractConverter: AbstractConverter{
 						alignType: alignType,
@@ -144,8 +143,6 @@ func (encoder *PatternEncoder) initConverterChain() {
 				}
 				converter.SetNext(nextConverter)
 				converter = nextConverter
-
-				index += offset
 			} else {
 				panic("unsupported pattern '" + encoder.layout + "'")
 			}
