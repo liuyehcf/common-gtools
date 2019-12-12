@@ -13,6 +13,7 @@ const (
 
 var (
 	date    *Conversion
+	line    *Conversion
 	message *Conversion
 	newline *Conversion
 	level   *Conversion
@@ -113,9 +114,9 @@ func (encoder *PatternEncoder) initConverterChain() {
 				converter = nextConverter
 
 				index += 1
-			} else if ok, offset := matchesConversion(runes, index, level); ok {
+			} else if ok, offset := matchesConversion(runes, index, line); ok {
 				index += offset
-				nextConverter := &LevelConverter{
+				nextConverter := &LineConverter{
 					AbstractConverter: AbstractConverter{
 						alignType: alignType,
 						width:     width,
@@ -136,6 +137,16 @@ func (encoder *PatternEncoder) initConverterChain() {
 			} else if ok, offset := matchesConversion(runes, index, newline); ok {
 				index += offset
 				nextConverter := &NewlineConverter{
+					AbstractConverter: AbstractConverter{
+						alignType: alignType,
+						width:     width,
+					},
+				}
+				converter.SetNext(nextConverter)
+				converter = nextConverter
+			} else if ok, offset := matchesConversion(runes, index, level); ok {
+				index += offset
+				nextConverter := &LevelConverter{
 					AbstractConverter: AbstractConverter{
 						alignType: alignType,
 						width:     width,
@@ -238,15 +249,15 @@ func init() {
 	date = &Conversion{
 		words: []string{"d", "date"},
 	}
-
+	line = &Conversion{
+		words: []string{"L", "line"},
+	}
 	message = &Conversion{
 		words: []string{"m", "msg", "message"},
 	}
-
 	newline = &Conversion{
 		words: []string{"n"},
 	}
-
 	level = &Conversion{
 		words: []string{"p", "le", "level"},
 	}

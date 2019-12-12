@@ -1,6 +1,9 @@
 package log
 
-import "time"
+import (
+	"runtime"
+	"time"
+)
 
 const (
 	TraceLevel = 1
@@ -103,9 +106,12 @@ func (logger *DefaultLogger) Error(format string, values ...interface{}) {
 }
 
 func (logger *DefaultLogger) callAllAppenders(level int, format string, values ...interface{}) {
+	_, file, line, _ := runtime.Caller(2)
 	event := &LoggingEvent{
 		Level:     level,
 		Timestamp: time.Now(),
+		File:      file,
+		Line:      line,
 		Message:   format,
 		Values:    values,
 	}

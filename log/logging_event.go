@@ -7,6 +7,8 @@ import (
 type LoggingEvent struct {
 	Level            int
 	Timestamp        time.Time
+	File             string
+	Line             int
 	Message          string
 	FormattedMessage string
 	Values           []interface{}

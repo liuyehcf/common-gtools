@@ -16,12 +16,10 @@ import (
 const (
 	TimeGranularityHour = int(1)
 	TimeGranularityDay  = int(2)
-
-	formatDay = "2006-01-02"
-
-	emptyString = ""
-
-	fileSuffix = ".log"
+	formatDay           = "2006-01-02"
+	emptyString         = ""
+	fileSuffix          = ".log"
+	pathSeparator       = string(os.PathSeparator)
 )
 
 type FileMeta struct {
@@ -140,7 +138,7 @@ type FileAppender struct {
 
 func NewFileAppender(config *AppenderConfig) *FileAppender {
 	policy := config.FileRollingPolicy
-	assert.AssertFalse(strings.HasSuffix(policy.Directory, string(os.PathSeparator)), "directory ends with path separator")
+	assert.AssertFalse(strings.HasSuffix(policy.Directory, pathSeparator), "directory ends with path separator")
 	assert.AssertFalse(strings.Contains(policy.FileName, "."), "file name contains '.'")
 	assert.AssertTrue(TimeGranularityHour == policy.TimeGranularity || TimeGranularityDay == policy.TimeGranularity, "TimeGranularity only support 1(TimeGranularityHour) and 2(TimeGranularityDay)")
 	assert.AssertFalse(policy.MaxHistory < 1, "MaxHistory must large than 0")
@@ -157,8 +155,8 @@ func NewFileAppender(config *AppenderConfig) *FileAppender {
 		policy:           policy,
 		cron:             cr.New(),
 		fileRelativePath: fileRelativePath,
-		fileAbstractPath: policy.Directory + string(os.PathSeparator) + fileRelativePath,
-		fileAbstractName: policy.Directory + string(os.PathSeparator) + policy.FileName,
+		fileAbstractPath: policy.Directory + pathSeparator + fileRelativePath,
+		fileAbstractName: policy.Directory + pathSeparator + policy.FileName,
 	}
 
 	appender.cron.Start()
@@ -248,7 +246,7 @@ func (appender *FileAppender) getAllRollingFileMetas() []*FileMeta {
 }
 
 func (appender *FileAppender) parseRollingFileInfo(fileInfo os.FileInfo) *FileMeta {
-	abstractPath := appender.policy.Directory + string(os.PathSeparator) + fileInfo.Name()
+	abstractPath := appender.policy.Directory + pathSeparator + fileInfo.Name()
 
 	// skip current file
 	if fileInfo.Name() == appender.fileRelativePath {

@@ -1,6 +1,9 @@
 package log
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const (
 	leftAlign  = 0
@@ -81,6 +84,45 @@ func (converter *LiteralConverter) Convert(event *LoggingEvent) []byte {
 	return []byte(converter.literal)
 }
 
+// date converter
+type DateConverter struct {
+	AbstractConverter
+	format string
+}
+
+func (converter *DateConverter) Convert(event *LoggingEvent) []byte {
+	return []byte(converter.truncAlign(event.Timestamp.Format(converter.format)))
+}
+
+// line converter
+type LineConverter struct {
+	AbstractConverter
+}
+
+func (converter *LineConverter) Convert(event *LoggingEvent) []byte {
+	segments := strings.Split(event.File, pathSeparator)
+	simpleFileName := segments[len(segments)-1]
+	return []byte(converter.truncAlign(fmt.Sprintf("%s:%d", simpleFileName, event.Line)))
+}
+
+// message converter
+type MessageConverter struct {
+	AbstractConverter
+}
+
+func (converter *MessageConverter) Convert(event *LoggingEvent) []byte {
+	return []byte(converter.truncAlign(event.GetFormattedMessage()))
+}
+
+// newline converter
+type NewlineConverter struct {
+	AbstractConverter
+}
+
+func (converter *NewlineConverter) Convert(event *LoggingEvent) []byte {
+	return []byte("\n")
+}
+
 // level converter
 type LevelConverter struct {
 	AbstractConverter
@@ -101,32 +143,4 @@ func (converter *LevelConverter) Convert(event *LoggingEvent) []byte {
 	}
 
 	panic(fmt.Sprintf("unsupported log level '%d'", event.Level))
-}
-
-// date converter
-type DateConverter struct {
-	AbstractConverter
-	format string
-}
-
-func (converter *DateConverter) Convert(event *LoggingEvent) []byte {
-	return []byte(converter.truncAlign(event.Timestamp.Format(converter.format)))
-}
-
-// message converter
-type MessageConverter struct {
-	AbstractConverter
-}
-
-func (converter *MessageConverter) Convert(event *LoggingEvent) []byte {
-	return []byte(converter.truncAlign(event.GetFormattedMessage()))
-}
-
-// newline converter
-type NewlineConverter struct {
-	AbstractConverter
-}
-
-func (converter *NewlineConverter) Convert(event *LoggingEvent) []byte {
-	return []byte("\n")
 }
