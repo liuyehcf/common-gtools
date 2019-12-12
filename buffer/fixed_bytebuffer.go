@@ -5,39 +5,7 @@ import (
 	"github.com/liuyehcf/common-gtools/assert"
 )
 
-type Buffer interface {
-	// write data from src to buffer
-	// panic if no enough space
-	Write(src []byte)
-
-	// read data from buffer to dst
-	// returns the number of bytes actually read
-	Read(dst []byte) int
-
-	// capacity of this buffer
-	Capacity() int
-
-	// how many bytes can be read
-	ReadableBytes() int
-
-	// read index
-	ReadIndex() int
-
-	// write index for next byte
-	WriteIndex() int
-
-	// mark current buffer status for subsequent recovery
-	Mark()
-
-	// recover buffer status to mark point
-	// if the Mark method has not been called before, the behavior is unknown
-	Recover()
-
-	// clean status
-	Clean()
-}
-
-type ByteBuffer struct {
+type FixedByteBuffer struct {
 	// target byte slice
 	mem []byte
 
@@ -63,7 +31,7 @@ type ByteBuffer struct {
 	markWriteIndex int
 }
 
-func (buffer *ByteBuffer) Write(src []byte) {
+func (buffer *FixedByteBuffer) Write(src []byte) {
 	srcLen := len(src)
 
 	remainSpace := buffer.capacity - buffer.readableBytes
@@ -100,7 +68,7 @@ func (buffer *ByteBuffer) Write(src []byte) {
 	buffer.readableBytes += actualWritableLen
 }
 
-func (buffer *ByteBuffer) Read(dst []byte) int {
+func (buffer *FixedByteBuffer) Read(dst []byte) int {
 	if buffer.readableBytes <= 0 {
 		return 0
 	}
@@ -139,42 +107,42 @@ func (buffer *ByteBuffer) Read(dst []byte) int {
 	return actualReadLen
 }
 
-func (buffer *ByteBuffer) Capacity() int {
+func (buffer *FixedByteBuffer) Capacity() int {
 	return buffer.capacity
 }
 
-func (buffer *ByteBuffer) ReadableBytes() int {
+func (buffer *FixedByteBuffer) ReadableBytes() int {
 	return buffer.readableBytes
 }
 
-func (buffer *ByteBuffer) ReadIndex() int {
+func (buffer *FixedByteBuffer) ReadIndex() int {
 	return buffer.readIndex
 }
 
-func (buffer *ByteBuffer) WriteIndex() int {
+func (buffer *FixedByteBuffer) WriteIndex() int {
 	return buffer.writeIndex
 }
 
-func (buffer *ByteBuffer) Mark() {
+func (buffer *FixedByteBuffer) Mark() {
 	buffer.markReadableBytes = buffer.readableBytes
 	buffer.markReadIndex = buffer.readIndex
 	buffer.markWriteIndex = buffer.writeIndex
 }
 
-func (buffer *ByteBuffer) Recover() {
+func (buffer *FixedByteBuffer) Recover() {
 	buffer.readableBytes = buffer.markReadableBytes
 	buffer.readIndex = buffer.markReadIndex
 	buffer.writeIndex = buffer.markWriteIndex
 }
 
-func (buffer *ByteBuffer) Clean() {
+func (buffer *FixedByteBuffer) Clean() {
 	buffer.readableBytes = 0
 	buffer.readIndex = 0
 	buffer.writeIndex = 0
 }
 
-func NewByteBuffer(size int) Buffer {
-	return &ByteBuffer{
+func NewFixedByteBuffer(size int) Buffer {
+	return &FixedByteBuffer{
 		mem:           make([]byte, size),
 		capacity:      size,
 		readableBytes: 0,
