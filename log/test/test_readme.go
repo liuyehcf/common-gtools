@@ -57,11 +57,11 @@ func main() {
 
 	go func() {
 		for {
-			logger.Trace("现在的时间是 {}", time.Now())
-			logger.Debug("现在的时间是 {}", time.Now())
-			logger.Info("现在的时间是 {}", time.Now())
-			logger.Warn("现在的时间是 {}", time.Now())
-			logger.Error("现在的时间是 {}", time.Now())
+			logger.Trace("current time is {}", time.Now())
+			logger.Debug("current time is {}", time.Now())
+			logger.Info("current time is {}", time.Now())
+			logger.Warn("current time is {}", time.Now())
+			logger.Error("current time is {}", time.Now())
 
 			time.Sleep(1 * time.Second)
 		}
