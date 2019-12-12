@@ -2,10 +2,13 @@ package log
 
 import (
 	"bytes"
+	"github.com/liuyehcf/common-gtools/assert"
+	"strconv"
 )
 
 const (
-	format = '%'
+	percent       = '%'
+	strikethrough = '-'
 )
 
 var (
@@ -59,7 +62,15 @@ func (encoder *PatternEncoder) initConverterChain() {
 	for ; index < runesLen; {
 		c := runes[index]
 
-		if c == format {
+		if c == percent {
+			// parse align
+			alignType, offset := getAlignType(runes, index+1)
+			index += offset
+
+			// parse width
+			width, offset := getWidth(runes, index+1)
+			index += offset
+
 			if ok, offset := matchesConversion(runes, index+1, date); ok {
 				index += offset + 1
 
@@ -89,6 +100,10 @@ func (encoder *PatternEncoder) initConverterChain() {
 				}
 
 				nextConverter := &DateConverter{
+					AbstractConverter: AbstractConverter{
+						alignType: alignType,
+						width:     width,
+					},
 					format: buffer.String(),
 				}
 
@@ -97,19 +112,34 @@ func (encoder *PatternEncoder) initConverterChain() {
 
 				index += 1
 			} else if ok, offset := matchesConversion(runes, index+1, level); ok {
-				nextConverter := &LevelConverter{}
+				nextConverter := &LevelConverter{
+					AbstractConverter: AbstractConverter{
+						alignType: alignType,
+						width:     width,
+					},
+				}
 				converter.SetNext(nextConverter)
 				converter = nextConverter
 
 				index += offset + 1
 			} else if ok, offset := matchesConversion(runes, index+1, message); ok {
-				nextConverter := &MessageConverter{}
+				nextConverter := &MessageConverter{
+					AbstractConverter: AbstractConverter{
+						alignType: alignType,
+						width:     width,
+					},
+				}
 				converter.SetNext(nextConverter)
 				converter = nextConverter
 
 				index += offset + 1
 			} else if ok, offset := matchesConversion(runes, index+1, newline); ok {
-				nextConverter := &NewlineConverter{}
+				nextConverter := &NewlineConverter{
+					AbstractConverter: AbstractConverter{
+						alignType: alignType,
+						width:     width,
+					},
+				}
 				converter.SetNext(nextConverter)
 				converter = nextConverter
 
@@ -119,7 +149,7 @@ func (encoder *PatternEncoder) initConverterChain() {
 			}
 		} else {
 			buffer := bytes.Buffer{}
-			for ; index < runesLen && c != format; {
+			for ; index < runesLen && c != percent; {
 				buffer.WriteRune(c)
 
 				index += 1
@@ -136,6 +166,43 @@ func (encoder *PatternEncoder) initConverterChain() {
 			converter = nextConverter
 		}
 	}
+}
+
+func getAlignType(runes []rune, start int) (int, int) {
+	if start >= len(runes) {
+		return rightAlign, 0
+	}
+
+	if runes[start] == strikethrough {
+		return leftAlign, 1
+	} else {
+		return rightAlign, 0
+	}
+}
+
+func getWidth(runes []rune, start int) (int, int) {
+	if start >= len(runes) {
+		return unlimitedWidth, 0
+	}
+
+	index := start
+
+	for ; index < len(runes); {
+		v := runes[index]
+		if v < '0' || v > '9' {
+			break
+		}
+		index += 1
+	}
+
+	if index == start {
+		return unlimitedWidth, 0
+	}
+
+	width, err := strconv.Atoi(string(runes[start:index]))
+	assert.AssertNil(err, "failed to parse width")
+
+	return width, index - start
 }
 
 func matchesConversion(runes []rune, start int, conversion *Conversion) (bool, int) {

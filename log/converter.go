@@ -2,6 +2,14 @@ package log
 
 import "fmt"
 
+const (
+	leftAlign  = 0
+	rightAlign = 1
+
+	unlimitedWidth = -1
+	blank          = ' '
+)
+
 type Converter interface {
 	// convert event to string
 	Convert(event *LoggingEvent) []byte
@@ -14,7 +22,9 @@ type Converter interface {
 }
 
 type AbstractConverter struct {
-	next Converter
+	next      Converter
+	alignType int
+	width     int
 }
 
 func (converter *AbstractConverter) SetNext(next Converter) {
@@ -23,6 +33,34 @@ func (converter *AbstractConverter) SetNext(next Converter) {
 
 func (converter *AbstractConverter) GetNext() Converter {
 	return converter.next
+}
+
+func (converter *AbstractConverter) truncAlign(content string) string {
+	if unlimitedWidth == converter.width {
+		return content
+	}
+
+	runes := []rune(content)
+	if len(runes) >= converter.width {
+		return string(runes[:converter.width])
+	} else {
+		extensionRunes := make([]rune, converter.width)
+		if leftAlign == converter.alignType {
+			copy(extensionRunes[:len(runes)], runes)
+
+			for i := len(runes); i < len(extensionRunes); i += 1 {
+				extensionRunes[i] = blank
+			}
+		} else {
+			for i := 0; i < converter.width-len(runes); i += 1 {
+				extensionRunes[i] = blank
+			}
+
+			copy(extensionRunes[converter.width-len(runes):], runes)
+		}
+
+		return string(extensionRunes)
+	}
 }
 
 type HeadConverter struct {
@@ -51,16 +89,17 @@ type LevelConverter struct {
 func (converter *LevelConverter) Convert(event *LoggingEvent) []byte {
 	switch event.Level {
 	case TraceLevel:
-		return []byte("TRACE")
+		return []byte(converter.truncAlign("TRACE"))
 	case DebugLevel:
-		return []byte("DEBUG")
+		return []byte(converter.truncAlign("DEBUG"))
 	case InfoLevel:
-		return []byte("INFO")
+		return []byte(converter.truncAlign("INFO"))
 	case WarnLevel:
-		return []byte("WARN")
+		return []byte(converter.truncAlign("WARN"))
 	case ErrorLevel:
-		return []byte("ERROR")
+		return []byte(converter.truncAlign("ERROR"))
 	}
+
 	panic(fmt.Sprintf("unsupported log level '%d'", event.Level))
 }
 
@@ -71,7 +110,7 @@ type DateConverter struct {
 }
 
 func (converter *DateConverter) Convert(event *LoggingEvent) []byte {
-	return []byte(event.Timestamp.Format(converter.format))
+	return []byte(converter.truncAlign(event.Timestamp.Format(converter.format)))
 }
 
 // message converter
@@ -80,7 +119,7 @@ type MessageConverter struct {
 }
 
 func (converter *MessageConverter) Convert(event *LoggingEvent) []byte {
-	return []byte(event.GetFormattedMessage())
+	return []byte(converter.truncAlign(event.GetFormattedMessage()))
 }
 
 // newline converter
