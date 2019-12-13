@@ -20,10 +20,7 @@ func testNoFilter() {
 		Writer:  os.Stdout,
 	})
 
-	logger := log.DefaultLogger{
-		Level:     log.InfoLevel,
-		Appenders: []log.Appender{stdoutAppender},
-	}
+	logger := log.NewLogger(log.Root, log.InfoLevel, []log.Appender{stdoutAppender})
 
 	logger.Info("test now={}", time.Now())
 
@@ -44,10 +41,7 @@ func twoFilters() {
 		Writer:  os.Stdout,
 	})
 
-	logger := log.DefaultLogger{
-		Level:     log.InfoLevel,
-		Appenders: []log.Appender{stdoutAppender},
-	}
+	logger := log.NewLogger(log.Root, log.InfoLevel, []log.Appender{stdoutAppender})
 
 	logger.Info("test now={}", time.Now())
 	logger.Error("test now={}", time.Now())

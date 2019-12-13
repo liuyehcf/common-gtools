@@ -6,15 +6,15 @@ import (
 	"sync"
 )
 
-type WriterAppender struct {
-	AbstractAppender
+type writerAppender struct {
+	abstractAppender
 	writer io.Writer
 }
 
-func NewWriterAppender(config *AppenderConfig) *WriterAppender {
-	appender := &WriterAppender{
-		AbstractAppender: AbstractAppender{
-			encoder: NewPatternEncoder(config.Layout),
+func NewWriterAppender(config *AppenderConfig) *writerAppender {
+	appender := &writerAppender{
+		abstractAppender: abstractAppender{
+			encoder: newPatternEncoder(config.Layout),
 			filters: config.Filters,
 			lock:    new(sync.Mutex),
 			queue:   make(chan []byte, 1024),
@@ -27,18 +27,18 @@ func NewWriterAppender(config *AppenderConfig) *WriterAppender {
 	return appender
 }
 
-func (appender *WriterAppender) onEventLoop() {
+func (appender *writerAppender) onEventLoop() {
 	for {
 		content := <-appender.queue
 		appender.write(content)
 	}
 }
 
-func (appender *WriterAppender) Destroy() {
-	// do nothing
+func (appender *writerAppender) Destroy() {
+	close(appender.queue)
 }
 
-func (appender *WriterAppender) write(bytes []byte) {
+func (appender *writerAppender) write(bytes []byte) {
 	appender.lock.Lock()
 	defer appender.lock.Unlock()
 	_, err := appender.writer.Write(bytes)

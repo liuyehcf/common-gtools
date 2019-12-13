@@ -5,6 +5,7 @@ import (
 )
 
 type LoggingEvent struct {
+	Name             string
 	Level            int
 	Timestamp        time.Time
 	File             string

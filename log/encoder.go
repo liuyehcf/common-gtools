@@ -1,6 +1,6 @@
 package log
 
-type Encoder interface {
+type encoder interface {
 	// encoding logging event to bytes
-	Encode(event *LoggingEvent) []byte
+	encode(event *LoggingEvent) []byte
 }

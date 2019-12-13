@@ -20,10 +20,7 @@ func main() {
 		},
 	})
 
-	logger := log.DefaultLogger{
-		Level:     log.InfoLevel,
-		Appenders: []log.Appender{commonFileAppender},
-	}
+	logger := log.NewLogger(log.Root, log.InfoLevel, []log.Appender{commonFileAppender})
 
 	go func() {
 		for {

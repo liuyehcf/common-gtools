@@ -6,13 +6,16 @@ import (
 )
 
 type AppenderConfig struct {
-	Layout  string
+	// layout
+	Layout string
+
+	// filters of log
 	Filters []Filter
 
-	// only used for WriterAppender
+	// only used for writerAppender
 	Writer io.Writer
 
-	// only used for FileAppender
+	// only used for fileAppender
 	FileRollingPolicy *RollingPolicy
 }
 
@@ -24,16 +27,16 @@ type Appender interface {
 	Destroy()
 }
 
-type AbstractAppender struct {
+type abstractAppender struct {
 	filters []Filter
-	encoder Encoder
+	encoder encoder
 	lock    *sync.Mutex
 	queue   chan []byte
 }
 
-func (appender *AbstractAppender) DoAppend(event *LoggingEvent) {
+func (appender *abstractAppender) DoAppend(event *LoggingEvent) {
 	if appender.filters == nil {
-		appender.queue <- appender.encoder.Encode(event)
+		appender.queue <- appender.encoder.encode(event)
 	} else {
 		for _, filter := range appender.filters {
 			if !filter.Accept(event) {
@@ -41,6 +44,6 @@ func (appender *AbstractAppender) DoAppend(event *LoggingEvent) {
 			}
 		}
 
-		appender.queue <- appender.encoder.Encode(event)
+		appender.queue <- appender.encoder.encode(event)
 	}
 }

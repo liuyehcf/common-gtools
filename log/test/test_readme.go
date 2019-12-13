@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	leftAlign := "%-30d{2006-01-02 15:04:05.999} [%-10p] --- [%-20L] %-1m%n"
-	rightAlign := "%30d{2006-01-02 15:04:05.999} [%10p] --- [%20L] %1m%n"
+	leftAlign := "%-30d{2006-01-02 15:04:05.999} [%-10c] [%-10p] --- [%-20L] %-1m%n"
+	rightAlign := "%30d{2006-01-02 15:04:05.999} [%10c] [%10p] --- [%20L] %1m%n"
 	infoLevelFilter := &log.LevelFilter{
 		LogLevelThreshold: log.InfoLevel,
 	}
@@ -50,10 +50,7 @@ func main() {
 		},
 	})
 
-	logger := log.DefaultLogger{
-		Level:     log.InfoLevel,
-		Appenders: []log.Appender{commonFileAppender, errorFileAppender, stdoutAppender, stderrAppender},
-	}
+	logger := log.NewLogger(log.Root, log.InfoLevel, []log.Appender{commonFileAppender, errorFileAppender, stdoutAppender, stderrAppender})
 
 	go func() {
 		for {

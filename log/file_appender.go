@@ -22,7 +22,7 @@ const (
 	pathSeparator       = string(os.PathSeparator)
 )
 
-type FileMeta struct {
+type fileMeta struct {
 	// exclude directory
 	abstractPath string
 	day          string
@@ -33,7 +33,7 @@ type FileMeta struct {
 	indexValue   int
 }
 
-func NewFileMeta(abstractPath string, day string, hour string, index string) *FileMeta {
+func newFileMeta(abstractPath string, day string, hour string, index string) *fileMeta {
 	var dayValue int
 	var hourValue int
 	var indexValue int
@@ -68,7 +68,7 @@ func NewFileMeta(abstractPath string, day string, hour string, index string) *Fi
 		}
 	}
 
-	return &FileMeta{
+	return &fileMeta{
 		abstractPath: abstractPath,
 		day:          day,
 		hour:         hour,
@@ -79,7 +79,7 @@ func NewFileMeta(abstractPath string, day string, hour string, index string) *Fi
 	}
 }
 
-type fileMetaSlice []*FileMeta
+type fileMetaSlice []*fileMeta
 
 func (slice fileMetaSlice) Len() int {
 	return len(slice)
@@ -126,8 +126,8 @@ type RollingPolicy struct {
 	MaxFileSize int64
 }
 
-type FileAppender struct {
-	AbstractAppender
+type fileAppender struct {
+	abstractAppender
 	policy           *RollingPolicy
 	cron             *cr.Cron
 	file             *os.File
@@ -136,7 +136,7 @@ type FileAppender struct {
 	fileAbstractName string
 }
 
-func NewFileAppender(config *AppenderConfig) *FileAppender {
+func NewFileAppender(config *AppenderConfig) *fileAppender {
 	policy := config.FileRollingPolicy
 	assert.AssertFalse(strings.HasSuffix(policy.Directory, pathSeparator), "directory ends with path separator")
 	assert.AssertFalse(strings.Contains(policy.FileName, "."), "file name contains '.'")
@@ -145,9 +145,9 @@ func NewFileAppender(config *AppenderConfig) *FileAppender {
 	assert.AssertFalse(policy.MaxFileSize < 1, "MaxFileSize must large than 0")
 
 	fileRelativePath := policy.FileName + fileSuffix
-	appender := &FileAppender{
-		AbstractAppender: AbstractAppender{
-			encoder: NewPatternEncoder(config.Layout),
+	appender := &fileAppender{
+		abstractAppender: abstractAppender{
+			encoder: newPatternEncoder(config.Layout),
 			filters: config.Filters,
 			lock:    new(sync.Mutex),
 			queue:   make(chan []byte, 1024),
@@ -182,13 +182,13 @@ func NewFileAppender(config *AppenderConfig) *FileAppender {
 	return appender
 }
 
-func (appender *FileAppender) Destroy() {
+func (appender *fileAppender) Destroy() {
 	appender.cron.Stop()
 	_ = appender.file.Close()
 	close(appender.queue)
 }
 
-func (appender *FileAppender) onEventLoop() {
+func (appender *fileAppender) onEventLoop() {
 	for {
 		content := <-appender.queue
 		appender.rollingIfFileSizeExceeded()
@@ -196,7 +196,7 @@ func (appender *FileAppender) onEventLoop() {
 	}
 }
 
-func (appender *FileAppender) rollingIfFileSizeExceeded() {
+func (appender *fileAppender) rollingIfFileSizeExceeded() {
 	info, err := appender.file.Stat()
 	assert.AssertNil(err, "failed to get file stat")
 
@@ -205,11 +205,11 @@ func (appender *FileAppender) rollingIfFileSizeExceeded() {
 	}
 }
 
-func (appender *FileAppender) rollingByTimer() {
+func (appender *fileAppender) rollingByTimer() {
 	appender.doSizeRolling()
 }
 
-func (appender *FileAppender) doSizeRolling() {
+func (appender *fileAppender) doSizeRolling() {
 	appender.lock.Lock()
 	defer appender.lock.Unlock()
 
@@ -225,11 +225,11 @@ func (appender *FileAppender) doSizeRolling() {
 	}
 }
 
-func (appender *FileAppender) getAllRollingFileMetas() []*FileMeta {
+func (appender *fileAppender) getAllRollingFileMetas() []*fileMeta {
 	files, err := ioutil.ReadDir(appender.policy.Directory)
 	assert.AssertNil(err, "failed to read directory")
 
-	fileMetas := make([]*FileMeta, 0)
+	fileMetas := make([]*fileMeta, 0)
 
 	for _, file := range files {
 		if strings.HasPrefix(file.Name(), appender.policy.FileName) &&
@@ -245,7 +245,7 @@ func (appender *FileAppender) getAllRollingFileMetas() []*FileMeta {
 	return fileMetas
 }
 
-func (appender *FileAppender) parseRollingFileInfo(fileInfo os.FileInfo) *FileMeta {
+func (appender *fileAppender) parseRollingFileInfo(fileInfo os.FileInfo) *fileMeta {
 	abstractPath := appender.policy.Directory + pathSeparator + fileInfo.Name()
 
 	// skip current file
@@ -263,14 +263,14 @@ func (appender *FileAppender) parseRollingFileInfo(fileInfo os.FileInfo) *FileMe
 	case TimeGranularityHour:
 		// xxx.2006-01-02.08.1.log
 		if segmentLen == 5 {
-			return NewFileMeta(abstractPath, segments[1], segments[2], segments[3])
+			return newFileMeta(abstractPath, segments[1], segments[2], segments[3])
 		} else {
 			return nil
 		}
 	case TimeGranularityDay:
 		// xxx.2006-01-02.1.log
 		if segmentLen == 4 {
-			return NewFileMeta(abstractPath, segments[1], "", segments[2])
+			return newFileMeta(abstractPath, segments[1], "", segments[2])
 		} else {
 			return nil
 		}
@@ -279,7 +279,7 @@ func (appender *FileAppender) parseRollingFileInfo(fileInfo os.FileInfo) *FileMe
 	return nil
 }
 
-func (appender *FileAppender) rollingFilesByHourGranularity(allRollingFileMetas fileMetaSlice) {
+func (appender *fileAppender) rollingFilesByHourGranularity(allRollingFileMetas fileMetaSlice) {
 	now := time.Now()
 	dayFormatted := now.Format(formatDay)
 	hour := now.Hour()
@@ -323,7 +323,7 @@ func (appender *FileAppender) rollingFilesByHourGranularity(allRollingFileMetas 
 	appender.createFileIfNecessary()
 }
 
-func (appender *FileAppender) rollingFilesByDayGranularity(allRollingFileMetas fileMetaSlice) {
+func (appender *fileAppender) rollingFilesByDayGranularity(allRollingFileMetas fileMetaSlice) {
 	now := time.Now()
 	dayFormatted := now.Format(formatDay)
 	dayTime, err := time.Parse(formatDay, dayFormatted)
@@ -368,18 +368,18 @@ func (appender *FileAppender) rollingFilesByDayGranularity(allRollingFileMetas f
 	appender.createFileIfNecessary()
 }
 
-func (appender *FileAppender) createDirectoryIfNecessary() {
+func (appender *fileAppender) createDirectoryIfNecessary() {
 	err := os.MkdirAll(appender.policy.Directory, os.ModePerm)
 	assert.AssertNil(err, "failed to create directory")
 }
 
-func (appender *FileAppender) createFileIfNecessary() {
+func (appender *fileAppender) createFileIfNecessary() {
 	var err error
 	appender.file, err = os.OpenFile(appender.fileAbstractPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	assert.AssertNil(err, "failed to open file")
 }
 
-func (appender *FileAppender) write(bytes []byte) {
+func (appender *fileAppender) write(bytes []byte) {
 	appender.lock.Lock()
 	defer appender.lock.Unlock()
 	_, err := appender.file.Write(bytes)

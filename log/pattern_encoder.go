@@ -12,24 +12,25 @@ const (
 )
 
 var (
-	date    *Conversion
-	line    *Conversion
-	message *Conversion
-	newline *Conversion
-	level   *Conversion
+	logger  *conversion
+	date    *conversion
+	line    *conversion
+	message *conversion
+	newline *conversion
+	level   *conversion
 )
 
-type Conversion struct {
+type conversion struct {
 	words []string
 }
 
-type PatternEncoder struct {
+type patternEncoder struct {
 	layout string
-	head   Converter
+	head   converter
 }
 
-func NewPatternEncoder(layout string) *PatternEncoder {
-	encoder := PatternEncoder{
+func newPatternEncoder(layout string) *patternEncoder {
+	encoder := patternEncoder{
 		layout: layout,
 	}
 
@@ -38,24 +39,24 @@ func NewPatternEncoder(layout string) *PatternEncoder {
 	return &encoder
 }
 
-func (encoder *PatternEncoder) Encode(event *LoggingEvent) []byte {
+func (encoder *patternEncoder) encode(event *LoggingEvent) []byte {
 	buffer := bytes.Buffer{}
 
 	converter := encoder.head
 
 	for ; converter != nil; {
-		buffer.Write(converter.Convert(event))
-		converter = converter.GetNext()
+		buffer.Write(converter.convert(event))
+		converter = converter.getNext()
 	}
 
 	return buffer.Bytes()
 }
 
-func (encoder *PatternEncoder) initConverterChain() {
+func (encoder *patternEncoder) initConverterChain() {
 	runes := []rune(encoder.layout)
 
 	index := 0
-	encoder.head = &HeadConverter{}
+	encoder.head = &headConverter{}
 	converter := encoder.head
 
 	runesLen := len(runes)
@@ -74,7 +75,17 @@ func (encoder *PatternEncoder) initConverterChain() {
 			width, offset := getWidth(runes, index)
 			index += offset
 
-			if ok, offset := matchesConversion(runes, index, date); ok {
+			if ok, offset := matchesConversion(runes, index, logger); ok {
+				index += offset
+				nextConverter := &loggerConverter{
+					abstractConverter: abstractConverter{
+						alignType: alignType,
+						width:     width,
+					},
+				}
+				converter.setNext(nextConverter)
+				converter = nextConverter
+			} else if ok, offset := matchesConversion(runes, index, date); ok {
 				index += offset
 
 				c = runes[index]
@@ -102,57 +113,57 @@ func (encoder *PatternEncoder) initConverterChain() {
 					panic("unsupported date format '" + encoder.layout + "'")
 				}
 
-				nextConverter := &DateConverter{
-					AbstractConverter: AbstractConverter{
+				nextConverter := &dateConverter{
+					abstractConverter: abstractConverter{
 						alignType: alignType,
 						width:     width,
 					},
 					format: buffer.String(),
 				}
 
-				converter.SetNext(nextConverter)
+				converter.setNext(nextConverter)
 				converter = nextConverter
 
 				index += 1
 			} else if ok, offset := matchesConversion(runes, index, line); ok {
 				index += offset
-				nextConverter := &LineConverter{
-					AbstractConverter: AbstractConverter{
+				nextConverter := &lineConverter{
+					abstractConverter: abstractConverter{
 						alignType: alignType,
 						width:     width,
 					},
 				}
-				converter.SetNext(nextConverter)
+				converter.setNext(nextConverter)
 				converter = nextConverter
 			} else if ok, offset := matchesConversion(runes, index, message); ok {
 				index += offset
-				nextConverter := &MessageConverter{
-					AbstractConverter: AbstractConverter{
+				nextConverter := &messageConverter{
+					abstractConverter: abstractConverter{
 						alignType: alignType,
 						width:     width,
 					},
 				}
-				converter.SetNext(nextConverter)
+				converter.setNext(nextConverter)
 				converter = nextConverter
 			} else if ok, offset := matchesConversion(runes, index, newline); ok {
 				index += offset
-				nextConverter := &NewlineConverter{
-					AbstractConverter: AbstractConverter{
+				nextConverter := &newlineConverter{
+					abstractConverter: abstractConverter{
 						alignType: alignType,
 						width:     width,
 					},
 				}
-				converter.SetNext(nextConverter)
+				converter.setNext(nextConverter)
 				converter = nextConverter
 			} else if ok, offset := matchesConversion(runes, index, level); ok {
 				index += offset
-				nextConverter := &LevelConverter{
-					AbstractConverter: AbstractConverter{
+				nextConverter := &levelConverter{
+					abstractConverter: abstractConverter{
 						alignType: alignType,
 						width:     width,
 					},
 				}
-				converter.SetNext(nextConverter)
+				converter.setNext(nextConverter)
 				converter = nextConverter
 			} else {
 				panic("unsupported pattern '" + encoder.layout + "'")
@@ -169,10 +180,10 @@ func (encoder *PatternEncoder) initConverterChain() {
 				}
 			}
 
-			nextConverter := &LiteralConverter{
+			nextConverter := &literalConverter{
 				literal: buffer.String(),
 			}
-			converter.SetNext(nextConverter)
+			converter.setNext(nextConverter)
 			converter = nextConverter
 		}
 	}
@@ -215,7 +226,7 @@ func getWidth(runes []rune, start int) (int, int) {
 	return width, index - start
 }
 
-func matchesConversion(runes []rune, start int, conversion *Conversion) (bool, int) {
+func matchesConversion(runes []rune, start int, conversion *conversion) (bool, int) {
 	for _, word := range conversion.words {
 		matches, offset := matchesWord(runes, start, word)
 
@@ -246,19 +257,22 @@ func matchesWord(runes []rune, start int, word string) (bool, int) {
 }
 
 func init() {
-	date = &Conversion{
+	logger = &conversion{
+		words: []string{"c", "lo", "logger"},
+	}
+	date = &conversion{
 		words: []string{"d", "date"},
 	}
-	line = &Conversion{
+	line = &conversion{
 		words: []string{"L", "line"},
 	}
-	message = &Conversion{
+	message = &conversion{
 		words: []string{"m", "msg", "message"},
 	}
-	newline = &Conversion{
+	newline = &conversion{
 		words: []string{"n"},
 	}
-	level = &Conversion{
+	level = &conversion{
 		words: []string{"p", "le", "level"},
 	}
 }
