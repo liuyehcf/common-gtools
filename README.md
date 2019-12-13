@@ -39,6 +39,8 @@ func main() {
 
 # Log
 
+Go version of logback, which is the main log framework of Java
+
 | conversion | description |
 |:--|:--|
 | `c`/`lo`/`logger` | logger name<br>support left and right alignment and width setting  |
