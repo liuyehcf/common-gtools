@@ -39,6 +39,15 @@ func main() {
 
 # Log
 
+| conversion | description |
+|:--|:--|
+| `c`/`lo`/`logger` | logger name<br>support left and right alignment and width setting  |
+| `d{format}`/`date{format}` | date in specified go's time format, like `2006-01-02 15:04:05.999`<br>support left and right alignment and width setting |
+| `L`/`line` | simple source file name and line num, like `main.go:34`<br>support left and right alignment and width setting |
+| `m`/`msg`/`message` | log message<br>support left and right alignment and width setting |
+| `n` | new line |
+| `p`/`le`/`level` | log level, including `TRACE`、`DEBUG`、`INFO`、`WARN`、`ERROR`<br>support left and right alignment and width setting |
+
 ```go
 package main
 
