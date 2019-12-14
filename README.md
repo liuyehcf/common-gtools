@@ -103,7 +103,7 @@ func main() {
 		},
 	})
 
-	logger := log.NewLogger(log.Root, log.InfoLevel, []log.Appender{commonFileAppender, errorFileAppender, stdoutAppender, stderrAppender})
+	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{commonFileAppender, errorFileAppender, stdoutAppender, stderrAppender})
 
 	go func() {
 		for {
@@ -113,7 +113,7 @@ func main() {
 			logger.Warn("current time is {}", time.Now())
 			logger.Error("current time is {}", time.Now())
 
-			time.Sleep(1 * time.Second)
+			time.Sleep(time.Second)
 		}
 	}()
 
