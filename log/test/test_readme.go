@@ -50,7 +50,7 @@ func main() {
 		},
 	})
 
-	logger := log.NewLogger(log.Root, log.InfoLevel, []log.Appender{commonFileAppender, errorFileAppender, stdoutAppender, stderrAppender})
+	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{commonFileAppender, errorFileAppender, stdoutAppender, stderrAppender})
 
 	go func() {
 		for {

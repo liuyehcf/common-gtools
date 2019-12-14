@@ -13,7 +13,8 @@ type AppenderConfig struct {
 	Filters []Filter
 
 	// only used for writerAppender
-	Writer io.Writer
+	Writer    io.WriteCloser
+	NeedClose bool
 
 	// only used for fileAppender
 	FileRollingPolicy *RollingPolicy

@@ -8,10 +8,13 @@ import (
 
 type writerAppender struct {
 	abstractAppender
-	writer io.Writer
+	writer    io.WriteCloser
+	needClose bool
 }
 
 func NewWriterAppender(config *AppenderConfig) *writerAppender {
+	assert.AssertNotNil(config.Writer, "write is required for writer appender")
+
 	appender := &writerAppender{
 		abstractAppender: abstractAppender{
 			encoder: newPatternEncoder(config.Layout),
@@ -19,7 +22,8 @@ func NewWriterAppender(config *AppenderConfig) *writerAppender {
 			lock:    new(sync.Mutex),
 			queue:   make(chan []byte, 1024),
 		},
-		writer: config.Writer,
+		writer:    config.Writer,
+		needClose: config.NeedClose,
 	}
 
 	go appender.onEventLoop()
@@ -36,6 +40,9 @@ func (appender *writerAppender) onEventLoop() {
 
 func (appender *writerAppender) Destroy() {
 	close(appender.queue)
+	if appender.needClose {
+		_ = appender.writer.Close()
+	}
 }
 
 func (appender *writerAppender) write(bytes []byte) {

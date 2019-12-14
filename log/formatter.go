@@ -11,15 +11,15 @@ const (
 	escapeChar       = '\\'
 )
 
-func Format(format string, values ...interface{}) string {
+func format(pattern string, values ...interface{}) string {
 	if values == nil || len(values) == 0 {
-		return format
+		return pattern
 	}
 	valueLen := len(values)
 
 	var buffer bytes.Buffer
 
-	runeFormat := []rune(format)
+	runeFormat := []rune(pattern)
 	placeHolderIndex := 0
 
 	isCurEscapeChar := false

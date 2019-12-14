@@ -20,7 +20,7 @@ func testNoFilter() {
 		Writer:  os.Stdout,
 	})
 
-	logger := log.NewLogger(log.Root, log.InfoLevel, []log.Appender{stdoutAppender})
+	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{stdoutAppender})
 
 	logger.Info("test now={}", time.Now())
 

@@ -2,7 +2,9 @@ package log
 
 import (
 	"fmt"
+	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -14,18 +16,18 @@ const (
 	WarnLevel  = 4
 	ErrorLevel = 5
 
-	Root = "root"
+	Root = "ROOT"
 )
 
 var (
-	loggerPool         = make(map[string]Logger, 0)
-	loggerPoolLock     = new(sync.Mutex)
-	lazyLoggerPool     = make(map[string]*lazyBoundLogger, 0)
-	lazyLoggerPoolLock = new(sync.Mutex)
-	rootLogger         Logger
-	mLogger            Logger = new(muteLogger)
+	loggers        = make(map[string]*loggerImpl, 0)
+	lock           = new(sync.Mutex)
+	virtualLoggers = make(map[string]*virtualLogger, 0)
+	virtualLock    = new(sync.Mutex)
+	rootLogger     *loggerImpl
 )
 
+// logger interface
 type Logger interface {
 	// get logger name
 	Name() string
@@ -67,75 +69,109 @@ type Logger interface {
 }
 
 func GetLogger(name string) Logger {
-	logger, ok := lazyLoggerPool[name]
+	logger, ok := virtualLoggers[name]
 
 	if ok {
 		return logger
 	}
 
-	lazyLoggerPoolLock.Lock()
-	defer lazyLoggerPoolLock.Unlock()
-	logger, ok = lazyLoggerPool[name]
+	virtualLock.Lock()
+	defer virtualLock.Unlock()
+	logger, ok = virtualLoggers[name]
 
 	if ok {
 		return logger
 	}
 
-	logger = &lazyBoundLogger{
-		name:    name,
-		target:  nil,
-		isBound: false,
+	logger = &virtualLogger{
+		name:   name,
+		target: nil,
 	}
 
-	lazyLoggerPool[name] = logger
+	virtualLoggers[name] = logger
 
 	return logger
 }
 
 func getTargetLogger(name string) Logger {
-	logger, ok := loggerPool[name]
+	logger, ok := loggers[name]
 
 	if ok {
 		return logger
 	}
 
-	if rootLogger != nil {
-		return rootLogger
-	}
-
-	return mLogger
+	return rootLogger
 }
 
 type loggerImpl struct {
-	name      string
-	level     int
-	appenders []Appender
+	name       string
+	level      int
+	additivity bool
+	appenders  []Appender
+	parent     *loggerImpl
 }
 
-func NewLogger(name string, level int, appenders []Appender) Logger {
-	logger := &loggerImpl{name: name, level: level, appenders: appenders}
+func NewLogger(name string, level int, additivity bool, appenders []Appender) Logger {
+	// create logger impl
+	newLoggerImpl(name, level, additivity, appenders)
 
-	loggerPoolLock.Lock()
-	defer loggerPoolLock.Unlock()
+	// always return virtual logger
+	return GetLogger(name)
+}
 
-	if _, ok := loggerPool[name]; ok {
+func newLoggerImpl(name string, level int, additivity bool, appenders []Appender) *loggerImpl {
+	lock.Lock()
+	defer lock.Unlock()
+
+	if _, ok := loggers[name]; ok {
 		fmt.Printf("logger '%s' is replaced\n", name)
 	}
-	loggerPool[name] = logger
 
-	for _, lazyLogger := range lazyLoggerPool {
-		if lazyLogger != nil {
-			lazyLogger.isBound = false
-			lazyLogger.target = nil
+	// clean bind status between virtual logger and true logger
+	// this bind status will be rebuild later automatically
+	for _, virtualLogger := range virtualLoggers {
+		if virtualLogger != nil {
+			virtualLogger.target = nil
 		}
 	}
 
-	if name == Root {
-		rootLogger = logger
-	}
+	var logger *loggerImpl
 
-	// always return lazy init logger
-	return GetLogger(name)
+	if isRoot(name) {
+		name = Root
+		logger = &loggerImpl{
+			name:       name,
+			level:      level,
+			additivity: false,
+			appenders:  appenders,
+			parent:     nil,
+		}
+		loggers[name] = logger
+		rootLogger = logger
+
+		for key, value := range loggers {
+			if !isRoot(key) {
+				value.parent = rootLogger
+			}
+		}
+
+		return logger
+	} else {
+		logger = &loggerImpl{
+			name:       name,
+			level:      level,
+			additivity: additivity,
+			appenders:  appenders,
+			parent:     rootLogger,
+		}
+		loggers[name] = logger
+
+		return logger
+	}
+}
+
+func isRoot(name string) bool {
+	return strings.ToUpper(name) == Root
 }
 
 func (logger *loggerImpl) Name() string {
@@ -204,24 +240,34 @@ func (logger *loggerImpl) callAllAppenders(level int, format string, values ...i
 		Values:    values,
 	}
 
+	for l := logger; l != nil; l = l.parent {
+		l.appendLoopOnAppenders(event)
+		if !l.additivity {
+			break
+		}
+	}
+}
+
+func (logger *loggerImpl) appendLoopOnAppenders(event *LoggingEvent) {
 	for _, appender := range logger.appenders {
 		appender.DoAppend(event)
 	}
 }
 
-// lazy bound logger
-type lazyBoundLogger struct {
-	name    string
-	target  Logger
-	isBound bool
+// virtual logger
+// user may get logger before true logger created
+// virtual logger will guarantee true logger will be bound at the right time
+type virtualLogger struct {
+	name   string
+	target Logger
 }
 
-func (logger *lazyBoundLogger) Name() string {
+func (logger *virtualLogger) Name() string {
 	return logger.name
 }
 
-func (logger *lazyBoundLogger) IsTraceEnabled() bool {
-	logger.lazyInitIfNecessary()
+func (logger *virtualLogger) IsTraceEnabled() bool {
+	logger.buildBoundStatusIfNecessary()
 
 	// target may be null if target logger is created or replaced
 	target := logger.target
@@ -231,8 +277,8 @@ func (logger *lazyBoundLogger) IsTraceEnabled() bool {
 	return target.IsTraceEnabled()
 }
 
-func (logger *lazyBoundLogger) Trace(format string, values ...interface{}) {
-	logger.lazyInitIfNecessary()
+func (logger *virtualLogger) Trace(format string, values ...interface{}) {
+	logger.buildBoundStatusIfNecessary()
 
 	// target may be null if target logger is created or replaced
 	target := logger.target
@@ -242,8 +288,8 @@ func (logger *lazyBoundLogger) Trace(format string, values ...interface{}) {
 	target.Trace(format, values...)
 }
 
-func (logger *lazyBoundLogger) IsDebugEnabled() bool {
-	logger.lazyInitIfNecessary()
+func (logger *virtualLogger) IsDebugEnabled() bool {
+	logger.buildBoundStatusIfNecessary()
 
 	// target may be null if target logger is created or replaced
 	target := logger.target
@@ -253,8 +299,8 @@ func (logger *lazyBoundLogger) IsDebugEnabled() bool {
 	return target.IsDebugEnabled()
 }
 
-func (logger *lazyBoundLogger) Debug(format string, values ...interface{}) {
-	logger.lazyInitIfNecessary()
+func (logger *virtualLogger) Debug(format string, values ...interface{}) {
+	logger.buildBoundStatusIfNecessary()
 
 	// target may be null if target logger is created or replaced
 	target := logger.target
@@ -264,8 +310,8 @@ func (logger *lazyBoundLogger) Debug(format string, values ...interface{}) {
 	target.Debug(format, values...)
 }
 
-func (logger *lazyBoundLogger) IsInfoEnabled() bool {
-	logger.lazyInitIfNecessary()
+func (logger *virtualLogger) IsInfoEnabled() bool {
+	logger.buildBoundStatusIfNecessary()
 
 	// target may be null if target logger is created or replaced
 	target := logger.target
@@ -275,8 +321,8 @@ func (logger *lazyBoundLogger) IsInfoEnabled() bool {
 	return target.IsInfoEnabled()
 }
 
-func (logger *lazyBoundLogger) Info(format string, values ...interface{}) {
-	logger.lazyInitIfNecessary()
+func (logger *virtualLogger) Info(format string, values ...interface{}) {
+	logger.buildBoundStatusIfNecessary()
 
 	// target may be null if target logger is created or replaced
 	target := logger.target
@@ -286,8 +332,8 @@ func (logger *lazyBoundLogger) Info(format string, values ...interface{}) {
 	target.Info(format, values...)
 }
 
-func (logger *lazyBoundLogger) IsWarnEnabled() bool {
-	logger.lazyInitIfNecessary()
+func (logger *virtualLogger) IsWarnEnabled() bool {
+	logger.buildBoundStatusIfNecessary()
 
 	// target may be null if target logger is created or replaced
 	target := logger.target
@@ -297,8 +343,8 @@ func (logger *lazyBoundLogger) IsWarnEnabled() bool {
 	return target.IsWarnEnabled()
 }
 
-func (logger *lazyBoundLogger) Warn(format string, values ...interface{}) {
-	logger.lazyInitIfNecessary()
+func (logger *virtualLogger) Warn(format string, values ...interface{}) {
+	logger.buildBoundStatusIfNecessary()
 
 	// target may be null if target logger is created or replaced
 	target := logger.target
@@ -308,8 +354,8 @@ func (logger *lazyBoundLogger) Warn(format string, values ...interface{}) {
 	target.Warn(format, values...)
 }
 
-func (logger *lazyBoundLogger) IsErrorEnabled() bool {
-	logger.lazyInitIfNecessary()
+func (logger *virtualLogger) IsErrorEnabled() bool {
+	logger.buildBoundStatusIfNecessary()
 
 	// target may be null if target logger is created or replaced
 	target := logger.target
@@ -319,8 +365,8 @@ func (logger *lazyBoundLogger) IsErrorEnabled() bool {
 	return target.IsErrorEnabled()
 }
 
-func (logger *lazyBoundLogger) Error(format string, values ...interface{}) {
-	logger.lazyInitIfNecessary()
+func (logger *virtualLogger) Error(format string, values ...interface{}) {
+	logger.buildBoundStatusIfNecessary()
 
 	// target may be null if target logger is created or replaced
 	target := logger.target
@@ -330,60 +376,24 @@ func (logger *lazyBoundLogger) Error(format string, values ...interface{}) {
 	target.Error(format, values...)
 }
 
-func (logger *lazyBoundLogger) lazyInitIfNecessary() {
-	if logger.isBound {
+func (logger *virtualLogger) buildBoundStatusIfNecessary() {
+	if logger.target != nil {
 		return
 	}
 
 	logger.target = getTargetLogger(logger.name)
-	logger.isBound = true
 	return
 }
 
-// this logger will return if no logger matches
-type muteLogger struct {
-}
+func init() {
+	initConversion()
 
-func (logger *muteLogger) Name() string {
-	return "mute"
-}
+	stdoutAppender := NewWriterAppender(&AppenderConfig{
+		Layout:    "%d{2006-01-02 15:04:05.999} [%p] %m%n",
+		Filters:   nil,
+		Writer:    os.Stdout,
+		NeedClose: false,
+	})
 
-func (logger *muteLogger) IsTraceEnabled() bool {
-	return false
-}
-
-func (logger *muteLogger) Trace(format string, values ...interface{}) {
-	return
-}
-
-func (logger *muteLogger) IsDebugEnabled() bool {
-	return false
-}
-
-func (logger *muteLogger) Debug(format string, values ...interface{}) {
-	return
-}
-
-func (logger *muteLogger) IsInfoEnabled() bool {
-	return false
-}
-
-func (logger *muteLogger) Info(format string, values ...interface{}) {
-	return
-}
-
-func (logger *muteLogger) IsWarnEnabled() bool {
-	return false
-}
-
-func (logger *muteLogger) Warn(format string, values ...interface{}) {
-	return
-}
-
-func (logger *muteLogger) IsErrorEnabled() bool {
-	return false
-}
-
-func (logger *muteLogger) Error(format string, values ...interface{}) {
-	return
+	rootLogger = newLoggerImpl(Root, InfoLevel, false, []Appender{stdoutAppender})
 }

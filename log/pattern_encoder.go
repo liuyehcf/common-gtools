@@ -256,7 +256,7 @@ func matchesWord(runes []rune, start int, word string) (bool, int) {
 	return true, expectedLen
 }
 
-func init() {
+func initConversion() {
 	logger = &conversion{
 		words: []string{"c", "lo", "logger"},
 	}

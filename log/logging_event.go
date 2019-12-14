@@ -18,7 +18,7 @@ type LoggingEvent struct {
 
 func (event *LoggingEvent) GetFormattedMessage() string {
 	if !event.isInit {
-		event.FormattedMessage = Format(event.Message, event.Values...)
+		event.FormattedMessage = format(event.Message, event.Values...)
 		event.isInit = true
 	}
 

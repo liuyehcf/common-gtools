@@ -20,7 +20,7 @@ func main() {
 		},
 	})
 
-	logger := log.NewLogger(log.Root, log.InfoLevel, []log.Appender{commonFileAppender})
+	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{commonFileAppender})
 
 	go func() {
 		for {

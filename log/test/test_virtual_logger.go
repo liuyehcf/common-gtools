@@ -28,7 +28,7 @@ func main() {
 		Writer:  os.Stdout,
 	})
 
-	newLogger := log.NewLogger(log.Root, log.TraceLevel, []log.Appender{stdoutAppender})
+	newLogger := log.NewLogger(log.Root, log.TraceLevel, false, []log.Appender{stdoutAppender})
 
 	logger.Trace("you can see this trace log2")
 	newLogger.Trace("you can see this trace log2")
