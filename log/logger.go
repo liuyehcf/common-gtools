@@ -93,14 +93,14 @@ func GetLogger(name string) Logger {
 	return logger
 }
 
-func getTargetLogger(name string) Logger {
+func getTargetLogger(name string, level int) Logger {
 	logger, ok := loggers[name]
 
 	if ok {
 		return logger
 	}
 
-	return rootLogger
+	return newLoggerImpl(name, level, true, nil)
 }
 
 type loggerImpl struct {
@@ -249,8 +249,12 @@ func (logger *loggerImpl) callAllAppenders(level int, format string, values ...i
 }
 
 func (logger *loggerImpl) appendLoopOnAppenders(event *LoggingEvent) {
-	for _, appender := range logger.appenders {
-		appender.DoAppend(event)
+	if logger.appenders != nil {
+		for _, appender := range logger.appenders {
+			if appender != nil {
+				appender.DoAppend(event)
+			}
+		}
 	}
 }
 
@@ -259,6 +263,7 @@ func (logger *loggerImpl) appendLoopOnAppenders(event *LoggingEvent) {
 // virtual logger will guarantee true logger will be bound at the right time
 type virtualLogger struct {
 	name   string
+	level  int
 	target Logger
 }
 
@@ -381,7 +386,7 @@ func (logger *virtualLogger) buildBoundStatusIfNecessary() {
 		return
 	}
 
-	logger.target = getTargetLogger(logger.name)
+	logger.target = getTargetLogger(logger.name, logger.level)
 	return
 }
 
@@ -389,7 +394,7 @@ func init() {
 	initConversion()
 
 	stdoutAppender := NewWriterAppender(&AppenderConfig{
-		Layout:    "%d{2006-01-02 15:04:05.999} [%p] %m%n",
+		Layout:    "%d{2006-01-02 15:04:05.999} [%p]-[%c]-[%L] --- %m%n",
 		Filters:   nil,
 		Writer:    os.Stdout,
 		NeedClose: false,

@@ -60,7 +60,7 @@ func main() {
 			logger.Warn("current time is {}", time.Now())
 			logger.Error("current time is {}", time.Now())
 
-			time.Sleep(1 * time.Second)
+			time.Sleep(time.Second)
 		}
 	}()
 
