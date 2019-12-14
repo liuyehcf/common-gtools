@@ -21,11 +21,69 @@ const (
 
 var (
 	loggers        = make(map[string]*loggerImpl, 0)
-	lock           = new(sync.Mutex)
+	lock           = new(sync.RWMutex)
 	virtualLoggers = make(map[string]*virtualLogger, 0)
-	virtualLock    = new(sync.Mutex)
+	virtualLock    = new(sync.RWMutex)
 	rootLogger     *loggerImpl
 )
+
+func getLogger(name string) (*loggerImpl, bool) {
+	lock.RLock()
+	defer lock.RUnlock()
+
+	logger, ok := loggers[name]
+	return logger, ok
+}
+
+func setOrReplaceLogger(name string, logger *loggerImpl) {
+	lock.Lock()
+	defer lock.Unlock()
+
+	if _, ok := loggers[name]; ok {
+		fmt.Printf("logger '%s' is replaced\n", name)
+	}
+
+	loggers[name] = logger
+}
+
+func foreachLogger(f func(key string, value *loggerImpl)) {
+	lock.RLock()
+	defer lock.RUnlock()
+
+	for key, value := range loggers {
+		f(key, value)
+	}
+}
+
+func getVirtualLogger(name string) (*virtualLogger, bool) {
+	virtualLock.RLock()
+	defer virtualLock.RUnlock()
+
+	logger, ok := virtualLoggers[name]
+	return logger, ok
+}
+
+func setVirtualLoggerIfNotExist(name string, logger *virtualLogger) bool {
+	virtualLock.Lock()
+	defer virtualLock.Unlock()
+
+	if _, ok := virtualLoggers[name]; ok {
+		return false
+	}
+
+	virtualLoggers[name] = logger
+
+	return true
+}
+
+func foreachVirtualLogger(f func(key string, value *virtualLogger)) {
+	virtualLock.RLock()
+	defer virtualLock.RUnlock()
+
+	for key, value := range virtualLoggers {
+		f(key, value)
+	}
+}
 
 // logger interface
 type Logger interface {
@@ -69,32 +127,24 @@ type Logger interface {
 }
 
 func GetLogger(name string) Logger {
-	logger, ok := virtualLoggers[name]
+	logger, ok := getVirtualLogger(name)
 
 	if ok {
 		return logger
 	}
 
-	virtualLock.Lock()
-	defer virtualLock.Unlock()
-	logger, ok = virtualLoggers[name]
-
-	if ok {
-		return logger
-	}
-
-	logger = &virtualLogger{
+	setVirtualLoggerIfNotExist(name, &virtualLogger{
 		name:   name,
 		target: nil,
-	}
+	})
 
-	virtualLoggers[name] = logger
+	logger, _ = getVirtualLogger(name)
 
 	return logger
 }
 
 func getTargetLogger(name string, level int) Logger {
-	logger, ok := loggers[name]
+	logger, ok := getLogger(name)
 
 	if ok {
 		return logger
@@ -120,21 +170,6 @@ func NewLogger(name string, level int, additivity bool, appenders []Appender) Lo
 }
 
 func newLoggerImpl(name string, level int, additivity bool, appenders []Appender) *loggerImpl {
-	lock.Lock()
-	defer lock.Unlock()
-
-	if _, ok := loggers[name]; ok {
-		fmt.Printf("logger '%s' is replaced\n", name)
-	}
-
-	// clean bind status between virtual logger and true logger
-	// this bind status will be rebuild later automatically
-	for _, virtualLogger := range virtualLoggers {
-		if virtualLogger != nil {
-			virtualLogger.target = nil
-		}
-	}
-
 	var logger *loggerImpl
 
 	if isRoot(name) {
@@ -146,16 +181,14 @@ func newLoggerImpl(name string, level int, additivity bool, appenders []Appender
 			appenders:  appenders,
 			parent:     nil,
 		}
-		loggers[name] = logger
 		rootLogger = logger
 
-		for key, value := range loggers {
+		// reset all non-root loggers' parent field
+		foreachLogger(func(key string, value *loggerImpl) {
 			if !isRoot(key) {
 				value.parent = rootLogger
 			}
-		}
-
-		return logger
+		})
 	} else {
 		logger = &loggerImpl{
 			name:       name,
@@ -164,10 +197,19 @@ func newLoggerImpl(name string, level int, additivity bool, appenders []Appender
 			appenders:  appenders,
 			parent:     rootLogger,
 		}
-		loggers[name] = logger
-
-		return logger
 	}
+
+	setOrReplaceLogger(name, logger)
+
+	// clean bind status between virtual logger and target logger
+	// this bind status will be rebuild later automatically
+	foreachVirtualLogger(func(key string, value *virtualLogger) {
+		if value != nil {
+			value.target = nil
+		}
+	})
+
+	return logger
 }
 
 func isRoot(name string) bool {
@@ -259,8 +301,8 @@ func (logger *loggerImpl) appendLoopOnAppenders(event *LoggingEvent) {
 }
 
 // virtual logger
-// user may get logger before true logger created
-// virtual logger will guarantee true logger will be bound at the right time
+// user may get logger before target logger created
+// virtual logger will guarantee target logger will be bound at the right time
 type virtualLogger struct {
 	name   string
 	level  int
