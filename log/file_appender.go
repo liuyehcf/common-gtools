@@ -286,15 +286,16 @@ func (appender *fileAppender) rollingFilesByHourGranularity(allRollingFileMetas 
 
 	policy := appender.policy
 
-	if len(allRollingFileMetas) > policy.MaxHistory {
+	if len(allRollingFileMetas) >= policy.MaxHistory {
 		sort.Sort(allRollingFileMetas)
-		removedFileMetas := allRollingFileMetas[:len(allRollingFileMetas)-policy.MaxHistory]
+		maxRemainHistory := policy.MaxHistory - 1
+		removedFileMetas := allRollingFileMetas[:len(allRollingFileMetas)-maxRemainHistory]
 
 		for _, removedFileMeta := range removedFileMetas {
 			_ = os.Remove(removedFileMeta.abstractPath)
 		}
 
-		allRollingFileMetas = allRollingFileMetas[len(allRollingFileMetas)-policy.MaxHistory:]
+		allRollingFileMetas = allRollingFileMetas[len(allRollingFileMetas)-maxRemainHistory:]
 	}
 
 	fileMetasOfCurHour := make(fileMetaSlice, 0)
@@ -332,15 +333,16 @@ func (appender *fileAppender) rollingFilesByDayGranularity(allRollingFileMetas f
 
 	policy := appender.policy
 
-	if len(allRollingFileMetas) > policy.MaxHistory {
+	if len(allRollingFileMetas) >= policy.MaxHistory {
 		sort.Sort(allRollingFileMetas)
-		removedFileMetas := allRollingFileMetas[:len(allRollingFileMetas)-policy.MaxHistory]
+		maxRemainHistory := policy.MaxHistory - 1
+		removedFileMetas := allRollingFileMetas[:len(allRollingFileMetas)-maxRemainHistory]
 
 		for _, removedFileMeta := range removedFileMetas {
 			_ = os.Remove(removedFileMeta.abstractPath)
 		}
 
-		allRollingFileMetas = allRollingFileMetas[len(allRollingFileMetas)-policy.MaxHistory:]
+		allRollingFileMetas = allRollingFileMetas[len(allRollingFileMetas)-maxRemainHistory:]
 	}
 
 	fileMetasOfCurDay := make(fileMetaSlice, 0)
