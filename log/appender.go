@@ -29,13 +29,22 @@ type Appender interface {
 }
 
 type abstractAppender struct {
-	filters []Filter
-	encoder encoder
-	lock    *sync.Mutex
-	queue   chan []byte
+	filters     []Filter
+	encoder     encoder
+	lock        *sync.Mutex
+	queue       chan []byte
+	isDestroyed bool
 }
 
 func (appender *abstractAppender) DoAppend(event *LoggingEvent) {
+	if appender.isDestroyed {
+		return
+	}
+
+	// send on closed channel
+	defer func() {
+		recover()
+	}()
 	if appender.filters == nil {
 		appender.queue <- appender.encoder.encode(event)
 	} else {
@@ -44,7 +53,13 @@ func (appender *abstractAppender) DoAppend(event *LoggingEvent) {
 				return
 			}
 		}
-
 		appender.queue <- appender.encoder.encode(event)
 	}
+}
+
+func executeIgnorePanic(f func()) {
+	defer func() {
+		recover()
+	}()
+	f()
 }

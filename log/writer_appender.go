@@ -32,17 +32,25 @@ func NewWriterAppender(config *AppenderConfig) *writerAppender {
 }
 
 func (appender *writerAppender) onEventLoop() {
-	for {
+	defer func() {
+		recover()
+	}()
+	for !appender.isDestroyed {
 		content := <-appender.queue
 		appender.write(content)
 	}
 }
 
 func (appender *writerAppender) Destroy() {
-	close(appender.queue)
-	if appender.needClose {
-		_ = appender.writer.Close()
-	}
+	appender.isDestroyed = true
+	executeIgnorePanic(func() {
+		close(appender.queue)
+	})
+	executeIgnorePanic(func() {
+		if appender.needClose {
+			_ = appender.writer.Close()
+		}
+	})
 }
 
 func (appender *writerAppender) write(bytes []byte) {
