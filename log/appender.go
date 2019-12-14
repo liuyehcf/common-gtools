@@ -41,7 +41,10 @@ func (appender *abstractAppender) DoAppend(event *LoggingEvent) {
 		return
 	}
 
+	// recover from a crash caused by sending a message to a closed channel
+	defer appender.recoverIfChanClosed()
 	if appender.filters == nil {
+		// if channel is closed, then the upper statement will panic
 		appender.queue <- appender.encoder.encode(event)
 	} else {
 		for _, filter := range appender.filters {
@@ -49,7 +52,14 @@ func (appender *abstractAppender) DoAppend(event *LoggingEvent) {
 				return
 			}
 		}
+		// if channel is closed, then the upper statement will panic
 		appender.queue <- appender.encoder.encode(event)
+	}
+}
+
+func (appender *abstractAppender) recoverIfChanClosed() {
+	if appender.isDestroyed {
+		recover()
 	}
 }
 
