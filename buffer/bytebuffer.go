@@ -1,6 +1,6 @@
 package buffer
 
-type Buffer interface {
+type ByteBuffer interface {
 	// write data from src to buffer
 	// panic if no enough space
 	Write(src []byte)

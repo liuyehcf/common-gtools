@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	buffer := buf.NewFixedByteBuffer(10)
+	buffer := buf.NewRecycleByteBuffer(10)
 
 	buffer.Write([]byte{1, 2, 3, 4, 5})
 

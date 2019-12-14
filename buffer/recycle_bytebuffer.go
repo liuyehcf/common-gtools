@@ -5,7 +5,7 @@ import (
 	"github.com/liuyehcf/common-gtools/assert"
 )
 
-type FixedByteBuffer struct {
+type RecycleByteBuffer struct {
 	// target byte slice
 	mem []byte
 
@@ -31,7 +31,7 @@ type FixedByteBuffer struct {
 	markWriteIndex int
 }
 
-func (buffer *FixedByteBuffer) Write(src []byte) {
+func (buffer *RecycleByteBuffer) Write(src []byte) {
 	srcLen := len(src)
 
 	remainSpace := buffer.capacity - buffer.readableBytes
@@ -68,7 +68,7 @@ func (buffer *FixedByteBuffer) Write(src []byte) {
 	buffer.readableBytes += actualWritableLen
 }
 
-func (buffer *FixedByteBuffer) Read(dst []byte) int {
+func (buffer *RecycleByteBuffer) Read(dst []byte) int {
 	if buffer.readableBytes <= 0 {
 		return 0
 	}
@@ -107,42 +107,42 @@ func (buffer *FixedByteBuffer) Read(dst []byte) int {
 	return actualReadLen
 }
 
-func (buffer *FixedByteBuffer) Capacity() int {
+func (buffer *RecycleByteBuffer) Capacity() int {
 	return buffer.capacity
 }
 
-func (buffer *FixedByteBuffer) ReadableBytes() int {
+func (buffer *RecycleByteBuffer) ReadableBytes() int {
 	return buffer.readableBytes
 }
 
-func (buffer *FixedByteBuffer) ReadIndex() int {
+func (buffer *RecycleByteBuffer) ReadIndex() int {
 	return buffer.readIndex
 }
 
-func (buffer *FixedByteBuffer) WriteIndex() int {
+func (buffer *RecycleByteBuffer) WriteIndex() int {
 	return buffer.writeIndex
 }
 
-func (buffer *FixedByteBuffer) Mark() {
+func (buffer *RecycleByteBuffer) Mark() {
 	buffer.markReadableBytes = buffer.readableBytes
 	buffer.markReadIndex = buffer.readIndex
 	buffer.markWriteIndex = buffer.writeIndex
 }
 
-func (buffer *FixedByteBuffer) Recover() {
+func (buffer *RecycleByteBuffer) Recover() {
 	buffer.readableBytes = buffer.markReadableBytes
 	buffer.readIndex = buffer.markReadIndex
 	buffer.writeIndex = buffer.markWriteIndex
 }
 
-func (buffer *FixedByteBuffer) Clean() {
+func (buffer *RecycleByteBuffer) Clean() {
 	buffer.readableBytes = 0
 	buffer.readIndex = 0
 	buffer.writeIndex = 0
 }
 
-func NewFixedByteBuffer(size int) Buffer {
-	return &FixedByteBuffer{
+func NewRecycleByteBuffer(size int) ByteBuffer {
+	return &RecycleByteBuffer{
 		mem:           make([]byte, size),
 		capacity:      size,
 		readableBytes: 0,

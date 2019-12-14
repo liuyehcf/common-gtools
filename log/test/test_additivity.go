@@ -1,23 +1,34 @@
 package main
 
 import (
+	"github.com/liuyehcf/common-gtools/assert"
+	"github.com/liuyehcf/common-gtools/buffer"
 	"github.com/liuyehcf/common-gtools/log"
-	"os"
 	"time"
 )
 
 func main() {
-	stdoutAppender := log.NewWriterAppender(&log.AppenderConfig{
-		Layout:  "%d{2006-01-02 15:04:05.999} [%p]-[%c]-[%L] --- %m%n",
+	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
+	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
+		Layout:  "[%p]-[%c]-[%L] --- %m%n",
 		Filters: nil,
-		Writer:  os.Stdout,
+		Writer:  writer,
 	})
 
-	additivityLogger := log.NewLogger("additivityLogger", log.InfoLevel, true, []log.Appender{stdoutAppender})
+	additivityLogger := log.NewLogger("additivityLogger", log.InfoLevel, true, []log.Appender{writerAppender})
+	nonAdditivityLogger := log.NewLogger("nonAdditivityLogger", log.InfoLevel, false, []log.Appender{writerAppender})
+	log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{writerAppender})
+
+	var content string
+
 	additivityLogger.Info("you can see this twice")
+	time.Sleep(time.Millisecond * 10)
+	content = writer.ReadString()
+	assert.AssertTrue(content == "[INFO]-[additivityLogger]-[test_additivity.go:24] --- you can see this twice\n"+
+		"[INFO]-[additivityLogger]-[test_additivity.go:24] --- you can see this twice\n", content)
 
-	nonAdditivityLogger := log.NewLogger("nonAdditivityLogger", log.InfoLevel, false, []log.Appender{stdoutAppender})
 	nonAdditivityLogger.Info("you can see this once")
-
-	time.Sleep(time.Second)
+	time.Sleep(time.Millisecond * 10)
+	content = writer.ReadString()
+	assert.AssertTrue(content == "[INFO]-[nonAdditivityLogger]-[test_additivity.go:30] --- you can see this once\n", content)
 }

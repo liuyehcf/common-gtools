@@ -13,7 +13,7 @@ func main() {
 }
 
 func case1() {
-	buffer := buf.NewFixedByteBuffer(5)
+	buffer := buf.NewRecycleByteBuffer(5)
 	assert.AssertTrue(buffer.ReadableBytes() == 0, "test")
 	assert.AssertTrue(buffer.ReadIndex() == 0, "test")
 	assert.AssertTrue(buffer.WriteIndex() == 0, "test")
@@ -56,7 +56,7 @@ func case1() {
 }
 
 func case2() {
-	buffer := buf.NewFixedByteBuffer(100)
+	buffer := buf.NewRecycleByteBuffer(100)
 
 	for i := 0; i < 100; i += 1 {
 		bytes := make([]byte, i)
@@ -78,7 +78,7 @@ func case2() {
 }
 
 func case3() {
-	buffer := buf.NewFixedByteBuffer(6)
+	buffer := buf.NewRecycleByteBuffer(6)
 	buffer.Write([]byte{1, 2, 3, 4, 5, 6})
 
 	assert.AssertTrue(buffer.ReadableBytes() == 6, "test")

@@ -1,7 +1,6 @@
 package log
 
 import (
-	"fmt"
 	"os"
 	"runtime"
 	"strings"
@@ -40,10 +39,13 @@ func setOrReplaceLogger(name string, logger *loggerImpl) {
 	defer lock.Unlock()
 
 	if _, ok := loggers[name]; ok {
-		fmt.Printf("logger '%s' is replaced\n", name)
+		rootLogger.Warn("logger '{}' is replaced", name)
 	}
 
 	loggers[name] = logger
+	if isRoot(name) {
+		rootLogger = logger
+	}
 }
 
 func foreachLogger(f func(key string, value *loggerImpl)) {
@@ -181,7 +183,7 @@ func newLoggerImpl(name string, level int, additivity bool, appenders []Appender
 			appenders:  appenders,
 			parent:     nil,
 		}
-		rootLogger = logger
+		setOrReplaceLogger(name, logger)
 
 		// reset all non-root loggers' parent field
 		foreachLogger(func(key string, value *loggerImpl) {
@@ -197,9 +199,9 @@ func newLoggerImpl(name string, level int, additivity bool, appenders []Appender
 			appenders:  appenders,
 			parent:     rootLogger,
 		}
-	}
 
-	setOrReplaceLogger(name, logger)
+		setOrReplaceLogger(name, logger)
+	}
 
 	// clean bind status between virtual logger and target logger
 	// this bind status will be rebuild later automatically

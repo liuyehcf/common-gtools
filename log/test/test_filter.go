@@ -1,8 +1,9 @@
 package main
 
 import (
+	"github.com/liuyehcf/common-gtools/assert"
+	"github.com/liuyehcf/common-gtools/buffer"
 	"github.com/liuyehcf/common-gtools/log"
-	"os"
 	"time"
 )
 
@@ -13,60 +14,71 @@ func main() {
 }
 
 func testNoFilter() {
-	layout := "%d{2006-01-02 15:04:05.999} [%p] %m%n"
-	stdoutAppender := log.NewWriterAppender(&log.AppenderConfig{
-		Layout:  layout,
+	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
+	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
+		Layout:  "[%p]-[%c]-[%L] --- %m%n",
 		Filters: nil,
-		Writer:  os.Stdout,
+		Writer:  writer,
 	})
 
-	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{stdoutAppender})
+	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{writerAppender})
 
-	logger.Info("you can see this1 once, now={}", time.Now())
+	var content string
 
-	time.Sleep(time.Second)
+	logger.Info("you can see this once")
+	time.Sleep(time.Millisecond * 10)
+	content = writer.ReadString()
+	assert.AssertTrue(content == "[INFO]-[ROOT]-[test_filter.go:28] --- you can see this once\n", content)
 }
 
 func twoSameFilters() {
-	layout := "%d{2006-01-02 15:04:05.999} [%p] %m%n"
+	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
 	infoLevelFilter1 := &log.LevelFilter{
 		LogLevelThreshold: log.InfoLevel,
 	}
 	infoLevelFilter2 := &log.LevelFilter{
 		LogLevelThreshold: log.InfoLevel,
 	}
-	stdoutAppender := log.NewWriterAppender(&log.AppenderConfig{
-		Layout:  layout,
+	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
+		Layout:  "[%p]-[%c]-[%L] --- %m%n",
 		Filters: []log.Filter{infoLevelFilter1, infoLevelFilter2},
-		Writer:  os.Stdout,
+		Writer:  writer,
 	})
 
-	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{stdoutAppender})
+	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{writerAppender})
 
-	logger.Info("you can see this2 twice, now={}", time.Now())
-	logger.Error("you can see this2 twice, now={}", time.Now())
+	var content string
 
-	time.Sleep(time.Second)
+	logger.Info("you can see this twice", time.Now())
+	time.Sleep(time.Millisecond * 10)
+	logger.Error("you can see this twice", time.Now())
+	time.Sleep(time.Millisecond * 10)
+	content = writer.ReadString()
+	assert.AssertTrue(content == "[INFO]-[ROOT]-[test_filter.go:52] --- you can see this twice\n"+
+		"[ERROR]-[ROOT]-[test_filter.go:54] --- you can see this twice\n", content)
 }
 
 func twoDifferentFilters() {
-	layout := "%d{2006-01-02 15:04:05.999} [%p] %m%n"
+	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
 	infoLevelFilter := &log.LevelFilter{
 		LogLevelThreshold: log.InfoLevel,
 	}
 	errorLevelFilter := &log.LevelFilter{
 		LogLevelThreshold: log.ErrorLevel,
 	}
-	stdoutAppender := log.NewWriterAppender(&log.AppenderConfig{
-		Layout:  layout,
+	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
+		Layout:  "[%p]-[%c]-[%L] --- %m%n",
 		Filters: []log.Filter{infoLevelFilter, errorLevelFilter},
-		Writer:  os.Stdout,
+		Writer:  writer,
 	})
 
-	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{stdoutAppender})
+	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{writerAppender})
 
-	logger.Info("you cannot see this3 once, now={}", time.Now())
-	logger.Error("you can see this3 once, now={}", time.Now())
+	var content string
 
-	time.Sleep(time.Second)
+	logger.Info("you cannot see this once", time.Now())
+	logger.Error("you can see this once", time.Now())
+	time.Sleep(time.Millisecond * 10)
+	content = writer.ReadString()
+	assert.AssertTrue(content == "[ERROR]-[ROOT]-[test_filter.go:80] --- you can see this once\n", content)
 }
