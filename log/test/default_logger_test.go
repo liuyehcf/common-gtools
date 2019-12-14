@@ -4,10 +4,11 @@ import (
 	"github.com/liuyehcf/common-gtools/assert"
 	"github.com/liuyehcf/common-gtools/buffer"
 	"github.com/liuyehcf/common-gtools/log"
+	"testing"
 	"time"
 )
 
-func main() {
+func TestDefaultLogger(t *testing.T) {
 	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
 	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
 		Layout:  "[%p]-[%c]-[%L] --- %m%n",
@@ -24,5 +25,5 @@ func main() {
 	logger.Info("you can see this")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[notExist]-[test_no_specified_logger.go:24] --- you can see this\n", content)
+	assert.AssertTrue(content == "[INFO]-[notExist]-[default_logger_test.go:25] --- you can see this\n", content)
 }

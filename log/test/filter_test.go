@@ -4,16 +4,11 @@ import (
 	"github.com/liuyehcf/common-gtools/assert"
 	"github.com/liuyehcf/common-gtools/buffer"
 	"github.com/liuyehcf/common-gtools/log"
+	"testing"
 	"time"
 )
 
-func main() {
-	testNoFilter()
-	twoSameFilters()
-	twoDifferentFilters()
-}
-
-func testNoFilter() {
+func TestNoFilter(t *testing.T) {
 	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
 	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
 		Layout:  "[%p]-[%c]-[%L] --- %m%n",
@@ -28,10 +23,10 @@ func testNoFilter() {
 	logger.Info("you can see this once")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[ROOT]-[test_filter.go:28] --- you can see this once\n", content)
+	assert.AssertTrue(content == "[INFO]-[ROOT]-[filter_test.go:23] --- you can see this once\n", content)
 }
 
-func twoSameFilters() {
+func TestTwoSameFilters(t *testing.T) {
 	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
 	infoLevelFilter1 := &log.LevelFilter{
 		LogLevelThreshold: log.InfoLevel,
@@ -54,11 +49,11 @@ func twoSameFilters() {
 	logger.Error("you can see this twice", time.Now())
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[ROOT]-[test_filter.go:52] --- you can see this twice\n"+
-		"[ERROR]-[ROOT]-[test_filter.go:54] --- you can see this twice\n", content)
+	assert.AssertTrue(content == "[INFO]-[ROOT]-[filter_test.go:47] --- you can see this twice\n"+
+		"[ERROR]-[ROOT]-[filter_test.go:49] --- you can see this twice\n", content)
 }
 
-func twoDifferentFilters() {
+func TestTwoDifferentFilters(t *testing.T) {
 	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
 	infoLevelFilter := &log.LevelFilter{
 		LogLevelThreshold: log.InfoLevel,
@@ -80,5 +75,5 @@ func twoDifferentFilters() {
 	logger.Error("you can see this once", time.Now())
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[ERROR]-[ROOT]-[test_filter.go:80] --- you can see this once\n", content)
+	assert.AssertTrue(content == "[ERROR]-[ROOT]-[filter_test.go:75] --- you can see this once\n", content)
 }

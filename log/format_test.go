@@ -2,18 +2,10 @@ package log
 
 import (
 	"github.com/liuyehcf/common-gtools/assert"
+	"testing"
 )
 
-func main() {
-	onePlaceHolder()
-	twoPlaceHolder()
-	multiply()
-	escape()
-	containSpace()
-	chinese()
-}
-
-func onePlaceHolder() {
+func TestOnePlaceHolder(t *testing.T) {
 	assert.AssertTrue("abcdefg" == format("{}", "abcdefg"), "test")
 	assert.AssertTrue("{}" == format("{}"), "test")
 	assert.AssertTrue("abcdefg" == format("{}", "abcdefg", "hijklmn"), "test")
@@ -27,7 +19,7 @@ func onePlaceHolder() {
 	assert.AssertTrue("abcdefgsuffix" == format("{}suffix", "abcdefg", "hijklmn"), "test")
 }
 
-func twoPlaceHolder() {
+func TestTwoPlaceHolder(t *testing.T) {
 	assert.AssertTrue("a; b" == format("{}; {}", "a", "b"), "test")
 	assert.AssertTrue("{}; {}" == format("{}; {}"), "test")
 	assert.AssertTrue("a; {}" == format("{}; {}", "a"), "test")
@@ -47,7 +39,7 @@ func twoPlaceHolder() {
 	assert.AssertTrue("a; bsuffix" == format("{}; {}suffix", "a", "b", "c", "d"), "test")
 }
 
-func multiply() {
+func TestMultiply(t *testing.T) {
 	assert.AssertTrue("abcde" == format("{}{}{}{}{}", "a", "b", "c", "d", "e"), "test")
 	assert.AssertTrue("a bcde" == format("{} {}{}{}{}", "a", "b", "c", "d", "e"), "test")
 	assert.AssertTrue("ab cde" == format("{}{} {}{}{}", "a", "b", "c", "d", "e"), "test")
@@ -55,7 +47,7 @@ func multiply() {
 	assert.AssertTrue("abcd e" == format("{}{}{}{} {}", "a", "b", "c", "d", "e"), "test")
 }
 
-func escape() {
+func TestEscape(t *testing.T) {
 	assert.AssertTrue("\\{}" == format("\\{}", "a"), "test")
 	assert.AssertTrue("{\\}" == format("{\\}", "a"), "test")
 	assert.AssertTrue("\\{\\}" == format("\\{\\}", "a"), "test")
@@ -69,10 +61,10 @@ func escape() {
 	assert.AssertTrue("\\{\\}; a" == format("\\{\\}; {}", "a"), "test")
 }
 
-func containSpace() {
+func TestContainSpace(t *testing.T) {
 	assert.AssertTrue("{ }" == format("{ }", "a"), "test")
 }
 
-func chinese() {
+func TestChinese(t *testing.T) {
 	assert.AssertTrue("你好呀，小明" == format("你好呀，{}", "小明"), "test")
 }

@@ -4,15 +4,10 @@ import (
 	"github.com/liuyehcf/common-gtools/assert"
 	buf "github.com/liuyehcf/common-gtools/buffer"
 	"math/rand"
+	"testing"
 )
 
-func main() {
-	case1()
-	case2()
-	case3()
-}
-
-func case1() {
+func TestCase1(t *testing.T) {
 	buffer := buf.NewRecycleByteBuffer(5)
 	assert.AssertTrue(buffer.ReadableBytes() == 0, "test")
 	assert.AssertTrue(buffer.ReadIndex() == 0, "test")
@@ -55,7 +50,7 @@ func case1() {
 	assert.AssertTrue(buffer.WriteIndex() == 2, "test")
 }
 
-func case2() {
+func TestCase2(t *testing.T) {
 	buffer := buf.NewRecycleByteBuffer(100)
 
 	for i := 0; i < 100; i += 1 {
@@ -77,7 +72,7 @@ func case2() {
 	}
 }
 
-func case3() {
+func TestCase3(t *testing.T) {
 	buffer := buf.NewRecycleByteBuffer(6)
 	buffer.Write([]byte{1, 2, 3, 4, 5, 6})
 

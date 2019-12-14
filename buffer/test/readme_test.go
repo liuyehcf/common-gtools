@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	buf "github.com/liuyehcf/common-gtools/buffer"
+	"testing"
 )
 
-func main() {
+func TestReadMe(t *testing.T) {
 	buffer := buf.NewRecycleByteBuffer(10)
 
 	buffer.Write([]byte{1, 2, 3, 4, 5})

@@ -4,10 +4,11 @@ import (
 	"github.com/liuyehcf/common-gtools/assert"
 	"github.com/liuyehcf/common-gtools/buffer"
 	"github.com/liuyehcf/common-gtools/log"
+	"testing"
 	"time"
 )
 
-func main() {
+func TestAdditivity(t *testing.T) {
 	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
 	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
 		Layout:  "[%p]-[%c]-[%L] --- %m%n",
@@ -24,11 +25,11 @@ func main() {
 	additivityLogger.Info("you can see this twice")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[additivityLogger]-[test_additivity.go:24] --- you can see this twice\n"+
-		"[INFO]-[additivityLogger]-[test_additivity.go:24] --- you can see this twice\n", content)
+	assert.AssertTrue(content == "[INFO]-[additivityLogger]-[logger_additivity_test.go:25] --- you can see this twice\n"+
+		"[INFO]-[additivityLogger]-[logger_additivity_test.go:25] --- you can see this twice\n", content)
 
 	nonAdditivityLogger.Info("you can see this once")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[nonAdditivityLogger]-[test_additivity.go:30] --- you can see this once\n", content)
+	assert.AssertTrue(content == "[INFO]-[nonAdditivityLogger]-[logger_additivity_test.go:31] --- you can see this once\n", content)
 }

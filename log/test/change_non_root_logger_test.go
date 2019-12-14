@@ -4,10 +4,11 @@ import (
 	"github.com/liuyehcf/common-gtools/assert"
 	"github.com/liuyehcf/common-gtools/buffer"
 	"github.com/liuyehcf/common-gtools/log"
+	"testing"
 	"time"
 )
 
-func main() {
+func TestChangeNonRootLogger(t *testing.T) {
 	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
 	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
 		Layout:  "[%p]-[%c]-[%L] --- %m%n",
@@ -23,8 +24,8 @@ func main() {
 	logger.Error("you can see this twice")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[non-root]-[test_change_non_root_logger.go:22] --- you can see this twice\n"+
-		"[ERROR]-[non-root]-[test_change_non_root_logger.go:23] --- you can see this twice\n", content)
+	assert.AssertTrue(content == "[INFO]-[non-root]-[change_non_root_logger_test.go:23] --- you can see this twice\n"+
+		"[ERROR]-[non-root]-[change_non_root_logger_test.go:24] --- you can see this twice\n", content)
 
 	log.NewLogger("non-root", log.ErrorLevel, false, []log.Appender{writerAppender})
 
@@ -32,5 +33,5 @@ func main() {
 	logger.Error("you can see this once")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[ERROR]-[non-root]-[test_change_non_root_logger.go:32] --- you can see this once\n", content)
+	assert.AssertTrue(content == "[ERROR]-[non-root]-[change_non_root_logger_test.go:33] --- you can see this once\n", content)
 }

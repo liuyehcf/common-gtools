@@ -3,10 +3,11 @@ package main
 import (
 	"github.com/liuyehcf/common-gtools/log"
 	"os"
+	"testing"
 	"time"
 )
 
-func main() {
+func TestReadMe(t *testing.T) {
 	leftAlign := "%-30d{2006-01-02 15:04:05.999} [%-10c] [%-10p] --- [%-20L] %-1m%n"
 	rightAlign := "%30d{2006-01-02 15:04:05.999} [%10c] [%10p] --- [%20L] %1m%n"
 	infoLevelFilter := &log.LevelFilter{
@@ -64,5 +65,5 @@ func main() {
 		}
 	}()
 
-	<-make(chan interface{}, 0)
+	time.Sleep(time.Second * 5)
 }

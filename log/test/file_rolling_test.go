@@ -8,15 +8,11 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"testing"
 	"time"
 )
 
-func main() {
-	rollingByHour()
-	rollingByDay()
-}
-
-func rollingByHour() {
+func TestRollingByHour(t *testing.T) {
 	history := 20
 	rolling(log.TimeGranularityHour, history, func(fileInfo os.FileInfo) {
 		name := fileInfo.Name()
@@ -29,7 +25,7 @@ func rollingByHour() {
 	})
 }
 
-func rollingByDay() {
+func TestRollingByDay(t *testing.T) {
 	history := 20
 	rolling(log.TimeGranularityDay, history, func(fileInfo os.FileInfo) {
 		name := fileInfo.Name()
