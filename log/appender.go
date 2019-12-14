@@ -41,10 +41,6 @@ func (appender *abstractAppender) DoAppend(event *LoggingEvent) {
 		return
 	}
 
-	// send on closed channel
-	defer func() {
-		recover()
-	}()
 	if appender.filters == nil {
 		appender.queue <- appender.encoder.encode(event)
 	} else {

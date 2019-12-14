@@ -32,6 +32,8 @@ func NewWriterAppender(config *AppenderConfig) *writerAppender {
 }
 
 func (appender *writerAppender) Destroy() {
+	lock.Lock()
+	defer lock.Unlock()
 	appender.isDestroyed = true
 	executeIgnorePanic(func() {
 		close(appender.queue)
@@ -47,8 +49,15 @@ func (appender *writerAppender) onEventLoop() {
 	defer func() {
 		recover()
 	}()
+
+	var content []byte
+	var ok bool
 	for !appender.isDestroyed {
-		content := <-appender.queue
+		if content, ok = <-appender.queue; !ok {
+			// channel is closed
+			break
+
+		}
 		appender.write(content)
 	}
 }

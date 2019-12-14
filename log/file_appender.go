@@ -185,6 +185,7 @@ func NewFileAppender(config *AppenderConfig) *fileAppender {
 func (appender *fileAppender) Destroy() {
 	lock.Lock()
 	defer lock.Unlock()
+	appender.isDestroyed = true
 	executeIgnorePanic(func() {
 		appender.cron.Stop()
 	})
@@ -194,15 +195,20 @@ func (appender *fileAppender) Destroy() {
 	executeIgnorePanic(func() {
 		close(appender.queue)
 	})
-	appender.isDestroyed = true
 }
 
 func (appender *fileAppender) onEventLoop() {
 	defer func() {
 		recover()
 	}()
+
+	var content []byte
+	var ok bool
 	for !appender.isDestroyed {
-		content := <-appender.queue
+		if content, ok = <-appender.queue; !ok {
+			// channel is closed
+			break
+		}
 		appender.rollingIfFileSizeExceeded()
 		appender.write(content)
 	}
