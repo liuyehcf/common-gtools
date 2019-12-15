@@ -37,11 +37,19 @@ type abstractAppender struct {
 }
 
 func (appender *abstractAppender) DoAppend(event *LoggingEvent) {
+	// pre check is done here to avoid performing defer when the channel is closed, so as to improve performance
 	if appender.isDestroyed {
 		return
 	}
 
+	// although we made the flag bit judgment in the previous step,
+	// this does not guarantee that the channel must be in normal state when sending data,
+	// because it may be closed at this time.
+	// That is to say, when checking the flag bit, the channel is normal. When sending data, the channel is closed
+	//
 	// recover from a crash caused by sending a message to a closed channel
+	// It must be ensured that when the channel is closed, the flag 'isDestroyed' has been set to ensure the recovery of panic
+	// so the isDestroyed flag must be set before the channel is closed
 	defer appender.recoverIfChanClosed()
 	if appender.filters == nil {
 		// if channel is closed, then the upper statement will panic
