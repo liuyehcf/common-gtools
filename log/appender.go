@@ -56,8 +56,10 @@ func (appender *abstractAppender) DoAppend(event *LoggingEvent) {
 		appender.queue <- appender.encoder.encode(event)
 	} else {
 		for _, filter := range appender.filters {
-			if !filter.Accept(event) {
-				return
+			if filter != nil {
+				if !filter.Accept(event) {
+					return
+				}
 			}
 		}
 		// if channel is closed, then the upper statement will panic
