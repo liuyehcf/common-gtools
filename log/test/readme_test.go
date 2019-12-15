@@ -53,8 +53,10 @@ func TestReadMe(t *testing.T) {
 
 	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{commonFileAppender, errorFileAppender, stdoutAppender, stderrAppender})
 
+	stop := false
+
 	go func() {
-		for {
+		for !stop {
 			logger.Trace("current time is {}", time.Now())
 			logger.Debug("current time is {}", time.Now())
 			logger.Info("current time is {}", time.Now())
@@ -66,4 +68,7 @@ func TestReadMe(t *testing.T) {
 	}()
 
 	time.Sleep(time.Second * 5)
+
+	stop = true
+	time.Sleep(time.Second * 2)
 }

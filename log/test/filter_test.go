@@ -77,3 +77,21 @@ func TestTwoDifferentFilters(t *testing.T) {
 	content = writer.ReadString()
 	assert.AssertTrue(content == "[ERROR]-[ROOT]-[filter_test.go:75] --- you can see this once\n", content)
 }
+
+func TestNilFilter(t *testing.T) {
+	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
+	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
+		Layout:  "[%p]-[%c]-[%L] --- %m%n",
+		Filters: []log.Filter{nil, nil},
+		Writer:  writer,
+	})
+
+	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{writerAppender})
+
+	var content string
+
+	logger.Info("you can see this once")
+	time.Sleep(time.Millisecond * 10)
+	content = writer.ReadString()
+	assert.AssertTrue(content == "[INFO]-[ROOT]-[filter_test.go:93] --- you can see this once\n", content)
+}
