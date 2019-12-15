@@ -31,14 +31,17 @@ func getLogger(name string) (*loggerImpl, bool) {
 	defer lock.RUnlock()
 
 	logger, ok := loggers[name]
-	return logger, ok
+	if ok && logger != nil {
+		return logger, true
+	}
+	return nil, false
 }
 
 func setOrReplaceLogger(name string, logger *loggerImpl) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	if _, ok := loggers[name]; ok {
+	if logger, ok := loggers[name]; ok && logger != nil {
 		rootLogger.Warn("logger '{}' is replaced", name)
 	}
 
@@ -48,12 +51,23 @@ func setOrReplaceLogger(name string, logger *loggerImpl) {
 	}
 }
 
+func removeShadowLogger(name string) {
+	lock.Lock()
+	defer lock.Unlock()
+
+	if logger, ok := loggers[name]; ok && logger != nil && logger.isShadow {
+		loggers[name] = nil
+	}
+}
+
 func foreachLogger(f func(key string, value *loggerImpl)) {
 	lock.RLock()
 	defer lock.RUnlock()
 
 	for key, value := range loggers {
-		f(key, value)
+		if value != nil {
+			f(key, value)
+		}
 	}
 }
 
@@ -62,14 +76,18 @@ func getVirtualLogger(name string) (*virtualLogger, bool) {
 	defer virtualLock.RUnlock()
 
 	logger, ok := virtualLoggers[name]
-	return logger, ok
+
+	if ok && logger != nil {
+		return logger, true
+	}
+	return nil, false
 }
 
 func setVirtualLoggerIfNotExist(name string, logger *virtualLogger) bool {
 	virtualLock.Lock()
 	defer virtualLock.Unlock()
 
-	if _, ok := virtualLoggers[name]; ok {
+	if existedLogger, ok := virtualLoggers[name]; ok && existedLogger != nil {
 		return false
 	}
 
@@ -83,7 +101,9 @@ func foreachVirtualLogger(f func(key string, value *virtualLogger)) {
 	defer virtualLock.RUnlock()
 
 	for key, value := range virtualLoggers {
-		f(key, value)
+		if value != nil {
+			f(key, value)
+		}
 	}
 }
 
@@ -145,14 +165,15 @@ func GetLogger(name string) Logger {
 	return logger
 }
 
-func getTargetLogger(name string, level int) Logger {
+func getTargetLogger(name string) Logger {
 	logger, ok := getLogger(name)
 
 	if ok {
 		return logger
 	}
 
-	return newLoggerImpl(name, level, true, nil)
+	// create shadow logger
+	return newLoggerImpl(name, rootLogger.level, true, nil, true)
 }
 
 type loggerImpl struct {
@@ -161,17 +182,18 @@ type loggerImpl struct {
 	additivity bool
 	appenders  []Appender
 	parent     *loggerImpl
+	isShadow   bool
 }
 
 func NewLogger(name string, level int, additivity bool, appenders []Appender) Logger {
 	// create logger impl
-	newLoggerImpl(name, level, additivity, appenders)
+	newLoggerImpl(name, level, additivity, appenders, false)
 
 	// always return virtual logger
 	return GetLogger(name)
 }
 
-func newLoggerImpl(name string, level int, additivity bool, appenders []Appender) *loggerImpl {
+func newLoggerImpl(name string, level int, additivity bool, appenders []Appender, isShadow bool) *loggerImpl {
 	var logger *loggerImpl
 
 	if isRoot(name) {
@@ -182,15 +204,27 @@ func newLoggerImpl(name string, level int, additivity bool, appenders []Appender
 			additivity: false,
 			appenders:  appenders,
 			parent:     nil,
+			isShadow:   false,
 		}
 		setOrReplaceLogger(name, logger)
+
+		shadowNames := make([]string, 0)
 
 		// reset all non-root loggers' parent field
 		foreachLogger(func(key string, value *loggerImpl) {
 			if !isRoot(key) {
 				value.parent = rootLogger
+
+				if value.isShadow {
+					shadowNames = append(shadowNames, key)
+				}
 			}
 		})
+
+		// remove all shadow logger, then it will rebuild later with true level of new root logger
+		for _, name := range shadowNames {
+			removeShadowLogger(name)
+		}
 	} else {
 		logger = &loggerImpl{
 			name:       name,
@@ -198,6 +232,7 @@ func newLoggerImpl(name string, level int, additivity bool, appenders []Appender
 			additivity: additivity,
 			appenders:  appenders,
 			parent:     rootLogger,
+			isShadow:   isShadow,
 		}
 
 		setOrReplaceLogger(name, logger)
@@ -206,9 +241,7 @@ func newLoggerImpl(name string, level int, additivity bool, appenders []Appender
 	// clean bind status between virtual logger and target logger
 	// this bind status will be rebuild later automatically
 	foreachVirtualLogger(func(key string, value *virtualLogger) {
-		if value != nil {
-			value.target = nil
-		}
+		value.target = nil
 	})
 
 	return logger
@@ -307,7 +340,6 @@ func (logger *loggerImpl) appendLoopOnAppenders(event *LoggingEvent) {
 // virtual logger will guarantee target logger will be bound at the right time
 type virtualLogger struct {
 	name   string
-	level  int
 	target Logger
 }
 
@@ -430,7 +462,7 @@ func (logger *virtualLogger) buildBoundStatusIfNecessary() {
 		return
 	}
 
-	logger.target = getTargetLogger(logger.name, logger.level)
+	logger.target = getTargetLogger(logger.name)
 	return
 }
 
@@ -444,5 +476,5 @@ func init() {
 		NeedClose: false,
 	})
 
-	rootLogger = newLoggerImpl(Root, InfoLevel, false, []Appender{stdoutAppender})
+	rootLogger = newLoggerImpl(Root, InfoLevel, false, []Appender{stdoutAppender}, false)
 }
