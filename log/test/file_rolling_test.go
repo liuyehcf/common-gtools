@@ -47,7 +47,7 @@ func rolling(timeGranularity int, history int, fileAssert func(os.FileInfo)) {
 	fileName := "rolling"
 	stop := false
 
-	commonFileAppender := log.NewFileAppender(&log.AppenderConfig{
+	commonFileAppender, _ := log.NewFileAppender(&log.AppenderConfig{
 		Layout:  "%d{2006-01-02 15:04:05.999} [%p] %m%n",
 		Filters: nil,
 		FileRollingPolicy: &log.RollingPolicy{

@@ -10,7 +10,7 @@ import (
 
 func TestNoFilter(t *testing.T) {
 	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
-	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
+	writerAppender, _ := log.NewWriterAppender(&log.AppenderConfig{
 		Layout:  "[%p]-[%c]-[%L] --- %m%n",
 		Filters: nil,
 		Writer:  writer,
@@ -34,7 +34,7 @@ func TestTwoSameFilters(t *testing.T) {
 	infoLevelFilter2 := &log.LevelFilter{
 		LogLevelThreshold: log.InfoLevel,
 	}
-	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
+	writerAppender, _ := log.NewWriterAppender(&log.AppenderConfig{
 		Layout:  "[%p]-[%c]-[%L] --- %m%n",
 		Filters: []log.Filter{infoLevelFilter1, infoLevelFilter2},
 		Writer:  writer,
@@ -61,7 +61,7 @@ func TestTwoDifferentFilters(t *testing.T) {
 	errorLevelFilter := &log.LevelFilter{
 		LogLevelThreshold: log.ErrorLevel,
 	}
-	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
+	writerAppender, _ := log.NewWriterAppender(&log.AppenderConfig{
 		Layout:  "[%p]-[%c]-[%L] --- %m%n",
 		Filters: []log.Filter{infoLevelFilter, errorLevelFilter},
 		Writer:  writer,
@@ -80,7 +80,7 @@ func TestTwoDifferentFilters(t *testing.T) {
 
 func TestNilFilter(t *testing.T) {
 	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
-	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
+	writerAppender, _ := log.NewWriterAppender(&log.AppenderConfig{
 		Layout:  "[%p]-[%c]-[%L] --- %m%n",
 		Filters: []log.Filter{nil, nil},
 		Writer:  writer,

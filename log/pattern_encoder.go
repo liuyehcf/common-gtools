@@ -2,7 +2,6 @@ package log
 
 import (
 	"bytes"
-	"github.com/liuyehcf/common-gtools/assert"
 	"strconv"
 )
 
@@ -29,14 +28,17 @@ type patternEncoder struct {
 	head   converter
 }
 
-func newPatternEncoder(layout string) *patternEncoder {
+func newPatternEncoder(layout string) (*patternEncoder, error) {
 	encoder := patternEncoder{
 		layout: layout,
 	}
 
-	encoder.initConverterChain()
+	err := encoder.initConverterChain()
+	if err != nil {
+		return nil, err
+	}
 
-	return &encoder
+	return &encoder, nil
 }
 
 func (encoder *patternEncoder) encode(event *LoggingEvent) []byte {
@@ -52,7 +54,7 @@ func (encoder *patternEncoder) encode(event *LoggingEvent) []byte {
 	return buffer.Bytes()
 }
 
-func (encoder *patternEncoder) initConverterChain() {
+func (encoder *patternEncoder) initConverterChain() error {
 	runes := []rune(encoder.layout)
 
 	index := 0
@@ -72,7 +74,10 @@ func (encoder *patternEncoder) initConverterChain() {
 			index += offset
 
 			// parse width
-			width, offset := getWidth(runes, index)
+			width, offset, err := getWidth(runes, index)
+			if err != nil {
+				return err
+			}
 			index += offset
 
 			if ok, offset := matchesConversion(runes, index, logger); ok {
@@ -187,6 +192,8 @@ func (encoder *patternEncoder) initConverterChain() {
 			converter = nextConverter
 		}
 	}
+
+	return nil
 }
 
 func getAlignType(runes []rune, start int) (int, int) {
@@ -201,9 +208,9 @@ func getAlignType(runes []rune, start int) (int, int) {
 	}
 }
 
-func getWidth(runes []rune, start int) (int, int) {
+func getWidth(runes []rune, start int) (int, int, error) {
 	if start >= len(runes) {
-		return unlimitedWidth, 0
+		return unlimitedWidth, 0, nil
 	}
 
 	index := start
@@ -217,13 +224,15 @@ func getWidth(runes []rune, start int) (int, int) {
 	}
 
 	if index == start {
-		return unlimitedWidth, 0
+		return unlimitedWidth, 0, nil
 	}
 
 	width, err := strconv.Atoi(string(runes[start:index]))
-	assert.AssertNil(err, "failed to parse width")
+	if err != nil {
+		return -1, -1, err
+	}
 
-	return width, index - start
+	return width, index - start, nil
 }
 
 func matchesConversion(runes []rune, start int, conversion *conversion) (bool, int) {

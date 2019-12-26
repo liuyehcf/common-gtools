@@ -1,8 +1,8 @@
 package log
 
 import (
+	"errors"
 	"fmt"
-	"github.com/liuyehcf/common-gtools/assert"
 	cr "github.com/robfig/cron/v3"
 	"io/ioutil"
 	"os"
@@ -136,18 +136,35 @@ type fileAppender struct {
 	fileAbstractName string
 }
 
-func NewFileAppender(config *AppenderConfig) *fileAppender {
+func NewFileAppender(config *AppenderConfig) (*fileAppender, error) {
 	policy := config.FileRollingPolicy
-	assert.AssertFalse(strings.HasSuffix(policy.Directory, pathSeparator), "directory ends with path separator")
-	assert.AssertFalse(strings.Contains(policy.FileName, "."), "file name contains '.'")
-	assert.AssertTrue(TimeGranularityHour == policy.TimeGranularity || TimeGranularityDay == policy.TimeGranularity, "TimeGranularity only support 1(TimeGranularityHour) and 2(TimeGranularityDay)")
-	assert.AssertFalse(policy.MaxHistory < 1, "MaxHistory must large than 0")
-	assert.AssertFalse(policy.MaxFileSize < 1, "MaxFileSize must large than 0")
+
+	if strings.Contains(policy.FileName, ".") {
+		return nil, errors.New("file name contains '.'")
+	}
+	if TimeGranularityHour != policy.TimeGranularity && TimeGranularityDay != policy.TimeGranularity {
+		return nil, errors.New("TimeGranularity only support 1(TimeGranularityHour) and 2(TimeGranularityDay)")
+	}
+	if policy.MaxHistory < 1 {
+		return nil, errors.New("MaxHistory must large than 0")
+	}
+	if policy.MaxFileSize < 1 {
+		return nil, errors.New("MaxFileSize must large than 0")
+	}
+
+	for strings.HasSuffix(policy.Directory, pathSeparator) {
+		size := len(policy.Directory)
+		policy.Directory = policy.Directory[0 : size-1]
+	}
 
 	fileRelativePath := policy.FileName + fileSuffix
+	encoder, err := newPatternEncoder(config.Layout)
+	if err != nil {
+		return nil, err
+	}
 	appender := &fileAppender{
 		abstractAppender: abstractAppender{
-			encoder: newPatternEncoder(config.Layout),
+			encoder: encoder,
 			filters: config.Filters,
 			lock:    new(sync.Mutex),
 			queue:   make(chan []byte, 1024),
@@ -160,26 +177,37 @@ func NewFileAppender(config *AppenderConfig) *fileAppender {
 	}
 
 	appender.cron.Start()
-	appender.createDirectoryIfNecessary()
-	appender.createFileIfNecessary()
+	err = appender.createDirectoryIfNecessary()
+	if err != nil {
+		return nil, err
+	}
+	err = appender.createFileIfNecessary()
+	if err != nil {
+		return nil, err
+	}
 
-	go appender.onEventLoop()
 	switch policy.TimeGranularity {
 	case TimeGranularityHour:
 		_, err := appender.cron.AddFunc("@hourly", func() {
 			appender.rollingByTimer()
 		})
-		assert.AssertNil(err, "failed to add cron func")
+		if err != nil {
+			return nil, err
+		}
 		break
 	case TimeGranularityDay:
 		_, err := appender.cron.AddFunc("@daily", func() {
 			appender.rollingByTimer()
 		})
-		assert.AssertNil(err, "failed to add cron func")
+		if err != nil {
+			return nil, err
+		}
 		break
 	}
 
-	return appender
+	go appender.onEventLoop()
+
+	return appender, nil
 }
 
 func (appender *fileAppender) Destroy() {
@@ -216,7 +244,9 @@ func (appender *fileAppender) onEventLoop() {
 
 func (appender *fileAppender) rollingIfFileSizeExceeded() {
 	info, err := appender.file.Stat()
-	assert.AssertNil(err, "failed to get file stat")
+	if err != nil {
+		return
+	}
 
 	if info.Size() >= appender.policy.MaxFileSize {
 		appender.doSizeRolling()
@@ -244,10 +274,12 @@ func (appender *fileAppender) doSizeRolling() {
 }
 
 func (appender *fileAppender) getAllRollingFileMetas() []*fileMeta {
-	files, err := ioutil.ReadDir(appender.policy.Directory)
-	assert.AssertNil(err, "failed to read directory")
-
 	fileMetas := make([]*fileMeta, 0)
+
+	files, err := ioutil.ReadDir(appender.policy.Directory)
+	if err != nil {
+		return fileMetas
+	}
 
 	for _, file := range files {
 		if strings.HasPrefix(file.Name(), appender.policy.FileName) &&
@@ -339,14 +371,13 @@ func (appender *fileAppender) rollingFilesByHourGranularity(allRollingFileMetas 
 	_ = os.Rename(appender.fileAbstractPath,
 		fmt.Sprintf("%s.%s.%02d.%d%s", appender.fileAbstractName, dayFormatted, hour, 0, fileSuffix))
 
-	appender.createFileIfNecessary()
+	_ = appender.createFileIfNecessary()
 }
 
 func (appender *fileAppender) rollingFilesByDayGranularity(allRollingFileMetas fileMetaSlice) {
 	now := time.Now()
 	dayFormatted := now.Format(formatDay)
-	dayTime, err := time.Parse(formatDay, dayFormatted)
-	assert.AssertNil(err, "failed to parse day time")
+	dayTime, _ := time.Parse(formatDay, dayFormatted)
 	day := dayTime.Second()
 
 	policy := appender.policy
@@ -385,23 +416,21 @@ func (appender *fileAppender) rollingFilesByDayGranularity(allRollingFileMetas f
 	_ = os.Rename(appender.fileAbstractPath,
 		fmt.Sprintf("%s.%s.%d%s", appender.fileAbstractName, dayFormatted, 0, fileSuffix))
 
-	appender.createFileIfNecessary()
+	_ = appender.createFileIfNecessary()
 }
 
-func (appender *fileAppender) createDirectoryIfNecessary() {
-	err := os.MkdirAll(appender.policy.Directory, os.ModePerm)
-	assert.AssertNil(err, "failed to create directory")
+func (appender *fileAppender) createDirectoryIfNecessary() error {
+	return os.MkdirAll(appender.policy.Directory, os.ModePerm)
 }
 
-func (appender *fileAppender) createFileIfNecessary() {
+func (appender *fileAppender) createFileIfNecessary() error {
 	var err error
 	appender.file, err = os.OpenFile(appender.fileAbstractPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-	assert.AssertNil(err, "failed to open file")
+	return err
 }
 
 func (appender *fileAppender) write(bytes []byte) {
 	appender.lock.Lock()
 	defer appender.lock.Unlock()
-	_, err := appender.file.Write(bytes)
-	assert.AssertNil(err, "failed to write content")
+	_, _ = appender.file.Write(bytes)
 }

@@ -469,7 +469,7 @@ func (logger *virtualLogger) buildBoundStatusIfNecessary() {
 func init() {
 	initConversion()
 
-	stdoutAppender := NewWriterAppender(&AppenderConfig{
+	stdoutAppender, _ := NewWriterAppender(&AppenderConfig{
 		Layout:    "%d{2006-01-02 15:04:05.999} [%p]-[%c]-[%L] --- %m%n",
 		Filters:   nil,
 		Writer:    os.Stdout,

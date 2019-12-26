@@ -1,7 +1,7 @@
 package log
 
 import (
-	"github.com/liuyehcf/common-gtools/assert"
+	"errors"
 	"io"
 	"sync"
 )
@@ -12,12 +12,18 @@ type writerAppender struct {
 	needClose bool
 }
 
-func NewWriterAppender(config *AppenderConfig) *writerAppender {
-	assert.AssertNotNil(config.Writer, "write is required for writer appender")
+func NewWriterAppender(config *AppenderConfig) (*writerAppender, error) {
+	if config.Writer == nil {
+		return nil, errors.New("write is required for writer appender")
+	}
 
+	encoder, err := newPatternEncoder(config.Layout)
+	if err != nil {
+		return nil, err
+	}
 	appender := &writerAppender{
 		abstractAppender: abstractAppender{
-			encoder: newPatternEncoder(config.Layout),
+			encoder: encoder,
 			filters: config.Filters,
 			lock:    new(sync.Mutex),
 			queue:   make(chan []byte, 1024),
@@ -28,7 +34,7 @@ func NewWriterAppender(config *AppenderConfig) *writerAppender {
 
 	go appender.onEventLoop()
 
-	return appender
+	return appender, nil
 }
 
 func (appender *writerAppender) Destroy() {
@@ -65,6 +71,5 @@ func (appender *writerAppender) onEventLoop() {
 func (appender *writerAppender) write(bytes []byte) {
 	appender.lock.Lock()
 	defer appender.lock.Unlock()
-	_, err := appender.writer.Write(bytes)
-	assert.AssertNil(err, "failed to write content")
+	_, _ = appender.writer.Write(bytes)
 }

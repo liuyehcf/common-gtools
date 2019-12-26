@@ -16,18 +16,18 @@ func TestReadMe(t *testing.T) {
 	errorLevelFilter := &log.LevelFilter{
 		LogLevelThreshold: log.ErrorLevel,
 	}
-	stdoutAppender := log.NewWriterAppender(&log.AppenderConfig{
+	stdoutAppender, _ := log.NewWriterAppender(&log.AppenderConfig{
 		Layout:  leftAlign,
 		Filters: []log.Filter{infoLevelFilter},
 		Writer:  os.Stdout,
 	})
-	stderrAppender := log.NewWriterAppender(&log.AppenderConfig{
+	stderrAppender, _ := log.NewWriterAppender(&log.AppenderConfig{
 		Layout:  rightAlign,
 		Filters: []log.Filter{errorLevelFilter},
 		Writer:  os.Stderr,
 	})
 
-	commonFileAppender := log.NewFileAppender(&log.AppenderConfig{
+	commonFileAppender, _ := log.NewFileAppender(&log.AppenderConfig{
 		Layout:  leftAlign,
 		Filters: []log.Filter{infoLevelFilter},
 		FileRollingPolicy: &log.RollingPolicy{
@@ -39,7 +39,7 @@ func TestReadMe(t *testing.T) {
 		},
 	})
 
-	errorFileAppender := log.NewFileAppender(&log.AppenderConfig{
+	errorFileAppender, _ := log.NewFileAppender(&log.AppenderConfig{
 		Layout:  rightAlign,
 		Filters: []log.Filter{errorLevelFilter},
 		FileRollingPolicy: &log.RollingPolicy{

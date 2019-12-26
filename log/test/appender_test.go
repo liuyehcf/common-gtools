@@ -10,7 +10,7 @@ import (
 
 func TestNilAppender(t *testing.T) {
 	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
-	writerAppender := log.NewWriterAppender(&log.AppenderConfig{
+	writerAppender, _ := log.NewWriterAppender(&log.AppenderConfig{
 		Layout:  "[%p]-[%c]-[%L] --- %m%n",
 		Filters: nil,
 		Writer:  writer,
