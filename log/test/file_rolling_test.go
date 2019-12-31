@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/liuyehcf/common-gtools/assert"
 	"github.com/liuyehcf/common-gtools/log"
+	"github.com/liuyehcf/common-gtools/utils"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -17,11 +17,11 @@ func TestRollingByHour(t *testing.T) {
 	rolling(log.TimeGranularityHour, history, func(fileInfo os.FileInfo) {
 		name := fileInfo.Name()
 		segments := strings.Split(name, ".")
-		assert.AssertTrue(len(segments) == 5, "test")
+		utils.AssertTrue(len(segments) == 5, "test")
 
 		index, err := strconv.Atoi(segments[len(segments)-2])
-		assert.AssertNil(err, "test")
-		assert.AssertTrue(0 <= index && index < history, "test")
+		utils.AssertNil(err, "test")
+		utils.AssertTrue(0 <= index && index < history, "test")
 	})
 }
 
@@ -30,18 +30,18 @@ func TestRollingByDay(t *testing.T) {
 	rolling(log.TimeGranularityDay, history, func(fileInfo os.FileInfo) {
 		name := fileInfo.Name()
 		segments := strings.Split(name, ".")
-		assert.AssertTrue(len(segments) == 4, "test")
+		utils.AssertTrue(len(segments) == 4, "test")
 
 		index, err := strconv.Atoi(segments[len(segments)-2])
-		assert.AssertNil(err, "test")
-		assert.AssertTrue(0 <= index && index < history, "test")
+		utils.AssertNil(err, "test")
+		utils.AssertTrue(0 <= index && index < history, "test")
 	})
 }
 
 func rolling(timeGranularity int, history int, fileAssert func(os.FileInfo)) {
 	command := exec.Command("/bin/bash", "-c", "rm -rf /tmp/gtools")
 	err := command.Run()
-	assert.AssertNil(err, "test")
+	utils.AssertNil(err, "test")
 
 	direct := "/tmp/gtools/logs"
 	fileName := "rolling"
@@ -74,10 +74,10 @@ func rolling(timeGranularity int, history int, fileAssert func(os.FileInfo)) {
 	go func() {
 		for !stop {
 			fileInfos, err := ioutil.ReadDir(direct)
-			assert.AssertNil(err, "test")
+			utils.AssertNil(err, "test")
 			fileNum := len(fileInfos)
 			// if a file is being renamed, we can't find it here
-			assert.AssertTrue(fileNum <= history+1, "test")
+			utils.AssertTrue(fileNum <= history+1, "test")
 
 			for _, fileInfo := range fileInfos {
 				name := fileInfo.Name()

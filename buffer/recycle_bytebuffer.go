@@ -2,7 +2,7 @@ package buffer
 
 import (
 	"fmt"
-	"github.com/liuyehcf/common-gtools/assert"
+	"github.com/liuyehcf/common-gtools/utils"
 )
 
 type RecycleByteBuffer struct {
@@ -35,7 +35,7 @@ func (buffer *RecycleByteBuffer) Write(src []byte) {
 	srcLen := len(src)
 
 	remainSpace := buffer.capacity - buffer.readableBytes
-	assert.AssertFalse(srcLen > remainSpace, fmt.Sprintf("no enough space, required=%d, remain=%d", srcLen, remainSpace))
+	utils.AssertFalse(srcLen > remainSpace, fmt.Sprintf("no enough space, required=%d, remain=%d", srcLen, remainSpace))
 
 	var actualWritableLen int
 

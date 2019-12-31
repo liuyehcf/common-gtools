@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/liuyehcf/common-gtools/assert"
 	"github.com/liuyehcf/common-gtools/log"
+	"github.com/liuyehcf/common-gtools/utils"
 	"testing"
 )
 
@@ -18,8 +18,8 @@ func Test(t *testing.T) {
 			MaxFileSize:     1024 * 1024 * 1024,
 		},
 	})
-	assert.AssertNotNil(commonFileAppender, "test")
-	assert.AssertNil(err, "test")
+	utils.AssertNotNil(commonFileAppender, "test")
+	utils.AssertNil(err, "test")
 
 	commonFileAppender, err = log.NewFileAppender(&log.AppenderConfig{
 		Layout: leftAlign,
@@ -31,8 +31,8 @@ func Test(t *testing.T) {
 			MaxFileSize:     1024 * 1024 * 1024,
 		},
 	})
-	assert.AssertNotNil(commonFileAppender, "test")
-	assert.AssertNil(err, "test")
+	utils.AssertNotNil(commonFileAppender, "test")
+	utils.AssertNil(err, "test")
 
 	log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{commonFileAppender})
 

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/liuyehcf/common-gtools/assert"
 	"github.com/liuyehcf/common-gtools/buffer"
 	"github.com/liuyehcf/common-gtools/log"
+	"github.com/liuyehcf/common-gtools/utils"
 	"testing"
 	"time"
 )
@@ -25,13 +25,13 @@ func TestAdditivity(t *testing.T) {
 	additivityLogger.Info("you can see this twice")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[additivityLogger]-[logger_additivity_test.go:25] --- you can see this twice\n"+
+	utils.AssertTrue(content == "[INFO]-[additivityLogger]-[logger_additivity_test.go:25] --- you can see this twice\n"+
 		"[INFO]-[additivityLogger]-[logger_additivity_test.go:25] --- you can see this twice\n", content)
 
 	nonAdditivityLogger.Info("you can see this once")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[nonAdditivityLogger]-[logger_additivity_test.go:31] --- you can see this once\n", content)
+	utils.AssertTrue(content == "[INFO]-[nonAdditivityLogger]-[logger_additivity_test.go:31] --- you can see this once\n", content)
 }
 
 func TestChangeRootLogger(t *testing.T) {
@@ -50,15 +50,15 @@ func TestChangeRootLogger(t *testing.T) {
 	logger.Info("you can see this once")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[notExist]-[logger_additivity_test.go:50] --- you can see this once\n", content)
+	utils.AssertTrue(content == "[INFO]-[notExist]-[logger_additivity_test.go:50] --- you can see this once\n", content)
 
 	log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{nil})
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[WARN]-[ROOT]-[logger.go:209] --- logger 'ROOT' is replaced\n", content)
+	utils.AssertTrue(content == "[WARN]-[ROOT]-[logger.go:210] --- logger 'ROOT' is replaced\n", content)
 
 	logger.Info("you can see this once")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "", content)
+	utils.AssertTrue(content == "", content)
 }

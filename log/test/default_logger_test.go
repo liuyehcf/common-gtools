@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/liuyehcf/common-gtools/assert"
 	"github.com/liuyehcf/common-gtools/buffer"
 	"github.com/liuyehcf/common-gtools/log"
+	"github.com/liuyehcf/common-gtools/utils"
 	"testing"
 	"time"
 )
@@ -25,5 +25,5 @@ func TestDefaultLogger(t *testing.T) {
 	logger.Info("you can see this")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[notExist]-[default_logger_test.go:25] --- you can see this\n", content)
+	utils.AssertTrue(content == "[INFO]-[notExist]-[default_logger_test.go:25] --- you can see this\n", content)
 }

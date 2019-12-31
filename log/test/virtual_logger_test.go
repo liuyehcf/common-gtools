@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/liuyehcf/common-gtools/assert"
 	"github.com/liuyehcf/common-gtools/buffer"
 	"github.com/liuyehcf/common-gtools/log"
+	"github.com/liuyehcf/common-gtools/utils"
 	"testing"
 	"time"
 )
@@ -18,7 +18,7 @@ func TestDefaultVirtualLogger(t *testing.T) {
 
 	log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{writerAppender})
 
-	assert.AssertTrue(log.GetLogger("notExist") == log.GetLogger("notExist"), "test")
+	utils.AssertTrue(log.GetLogger("notExist") == log.GetLogger("notExist"), "test")
 
 	notExistLogger := log.GetLogger("notExist")
 
@@ -32,7 +32,7 @@ func TestDefaultVirtualLogger(t *testing.T) {
 
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[notExist]-[virtual_logger_test.go:29] --- you can see this info log\n"+
+	utils.AssertTrue(content == "[INFO]-[notExist]-[virtual_logger_test.go:29] --- you can see this info log\n"+
 		"[WARN]-[notExist]-[virtual_logger_test.go:30] --- you can see this warn log\n"+
 		"[ERROR]-[notExist]-[virtual_logger_test.go:31] --- you can see this error log\n", content)
 
@@ -53,11 +53,11 @@ func TestChangeTargetLogger(t *testing.T) {
 
 	var content string
 
-	assert.AssertFalse(logger.IsTraceEnabled(), "test")
-	assert.AssertFalse(logger.IsDebugEnabled(), "test")
-	assert.AssertTrue(logger.IsInfoEnabled(), "test")
-	assert.AssertTrue(logger.IsWarnEnabled(), "test")
-	assert.AssertTrue(logger.IsErrorEnabled(), "test")
+	utils.AssertFalse(logger.IsTraceEnabled(), "test")
+	utils.AssertFalse(logger.IsDebugEnabled(), "test")
+	utils.AssertTrue(logger.IsInfoEnabled(), "test")
+	utils.AssertTrue(logger.IsWarnEnabled(), "test")
+	utils.AssertTrue(logger.IsErrorEnabled(), "test")
 	logger.Trace("you cannot see this trace log")
 	logger.Debug("you cannot see this debug log")
 	logger.Info("you can see this info log")
@@ -65,7 +65,7 @@ func TestChangeTargetLogger(t *testing.T) {
 	logger.Error("you can see this error log")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[ROOT]-[virtual_logger_test.go:63] --- you can see this info log\n"+
+	utils.AssertTrue(content == "[INFO]-[ROOT]-[virtual_logger_test.go:63] --- you can see this info log\n"+
 		"[WARN]-[ROOT]-[virtual_logger_test.go:64] --- you can see this warn log\n"+
 		"[ERROR]-[ROOT]-[virtual_logger_test.go:65] --- you can see this error log\n", content)
 
@@ -83,7 +83,7 @@ func TestChangeTargetLogger(t *testing.T) {
 	newLogger.Error("you can see this error log")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[WARN]-[ROOT]-[logger.go:209] --- logger 'ROOT' is replaced\n"+
+	utils.AssertTrue(content == "[WARN]-[ROOT]-[logger.go:210] --- logger 'ROOT' is replaced\n"+
 		"[TRACE]-[ROOT]-[virtual_logger_test.go:74] --- you can see this trace log\n"+
 		"[TRACE]-[ROOT]-[virtual_logger_test.go:75] --- you can see this trace log\n"+
 		"[DEBUG]-[ROOT]-[virtual_logger_test.go:76] --- you can see this debug log\n"+
@@ -95,44 +95,44 @@ func TestChangeTargetLogger(t *testing.T) {
 		"[ERROR]-[ROOT]-[virtual_logger_test.go:82] --- you can see this error log\n"+
 		"[ERROR]-[ROOT]-[virtual_logger_test.go:83] --- you can see this error log\n", content)
 
-	assert.AssertTrue(logger == newLogger, "test")
+	utils.AssertTrue(logger == newLogger, "test")
 }
 
 func TestLoggerLevel(t *testing.T) {
 	logger := log.GetLogger("notExist")
 
 	log.NewLogger(log.Root, log.TraceLevel, false, nil)
-	assert.AssertTrue(logger.IsTraceEnabled(), "test")
-	assert.AssertTrue(logger.IsDebugEnabled(), "test")
-	assert.AssertTrue(logger.IsInfoEnabled(), "test")
-	assert.AssertTrue(logger.IsWarnEnabled(), "test")
-	assert.AssertTrue(logger.IsErrorEnabled(), "test")
+	utils.AssertTrue(logger.IsTraceEnabled(), "test")
+	utils.AssertTrue(logger.IsDebugEnabled(), "test")
+	utils.AssertTrue(logger.IsInfoEnabled(), "test")
+	utils.AssertTrue(logger.IsWarnEnabled(), "test")
+	utils.AssertTrue(logger.IsErrorEnabled(), "test")
 
 	log.NewLogger(log.Root, log.DebugLevel, false, nil)
-	assert.AssertFalse(logger.IsTraceEnabled(), "test")
-	assert.AssertTrue(logger.IsDebugEnabled(), "test")
-	assert.AssertTrue(logger.IsInfoEnabled(), "test")
-	assert.AssertTrue(logger.IsWarnEnabled(), "test")
-	assert.AssertTrue(logger.IsErrorEnabled(), "test")
+	utils.AssertFalse(logger.IsTraceEnabled(), "test")
+	utils.AssertTrue(logger.IsDebugEnabled(), "test")
+	utils.AssertTrue(logger.IsInfoEnabled(), "test")
+	utils.AssertTrue(logger.IsWarnEnabled(), "test")
+	utils.AssertTrue(logger.IsErrorEnabled(), "test")
 
 	log.NewLogger(log.Root, log.InfoLevel, false, nil)
-	assert.AssertFalse(logger.IsTraceEnabled(), "test")
-	assert.AssertFalse(logger.IsDebugEnabled(), "test")
-	assert.AssertTrue(logger.IsInfoEnabled(), "test")
-	assert.AssertTrue(logger.IsWarnEnabled(), "test")
-	assert.AssertTrue(logger.IsErrorEnabled(), "test")
+	utils.AssertFalse(logger.IsTraceEnabled(), "test")
+	utils.AssertFalse(logger.IsDebugEnabled(), "test")
+	utils.AssertTrue(logger.IsInfoEnabled(), "test")
+	utils.AssertTrue(logger.IsWarnEnabled(), "test")
+	utils.AssertTrue(logger.IsErrorEnabled(), "test")
 
 	log.NewLogger(log.Root, log.WarnLevel, false, nil)
-	assert.AssertFalse(logger.IsTraceEnabled(), "test")
-	assert.AssertFalse(logger.IsDebugEnabled(), "test")
-	assert.AssertFalse(logger.IsInfoEnabled(), "test")
-	assert.AssertTrue(logger.IsWarnEnabled(), "test")
-	assert.AssertTrue(logger.IsErrorEnabled(), "test")
+	utils.AssertFalse(logger.IsTraceEnabled(), "test")
+	utils.AssertFalse(logger.IsDebugEnabled(), "test")
+	utils.AssertFalse(logger.IsInfoEnabled(), "test")
+	utils.AssertTrue(logger.IsWarnEnabled(), "test")
+	utils.AssertTrue(logger.IsErrorEnabled(), "test")
 
 	log.NewLogger(log.Root, log.ErrorLevel, false, nil)
-	assert.AssertFalse(logger.IsTraceEnabled(), "test")
-	assert.AssertFalse(logger.IsDebugEnabled(), "test")
-	assert.AssertFalse(logger.IsInfoEnabled(), "test")
-	assert.AssertFalse(logger.IsWarnEnabled(), "test")
-	assert.AssertTrue(logger.IsErrorEnabled(), "test")
+	utils.AssertFalse(logger.IsTraceEnabled(), "test")
+	utils.AssertFalse(logger.IsDebugEnabled(), "test")
+	utils.AssertFalse(logger.IsInfoEnabled(), "test")
+	utils.AssertFalse(logger.IsWarnEnabled(), "test")
+	utils.AssertTrue(logger.IsErrorEnabled(), "test")
 }

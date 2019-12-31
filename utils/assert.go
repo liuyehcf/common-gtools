@@ -1,4 +1,4 @@
-package assert
+package utils
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 )
 
 func AssertNil(v interface{}, message string) {
-	if v != nil {
+	if IsNotNil(v) {
 		if err, ok := v.(error); ok {
 			panic(errors.New(fmt.Sprintf("%v, %s", err.Error(), message)))
 		} else {

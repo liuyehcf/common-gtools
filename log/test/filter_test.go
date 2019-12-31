@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/liuyehcf/common-gtools/assert"
 	"github.com/liuyehcf/common-gtools/buffer"
 	"github.com/liuyehcf/common-gtools/log"
+	"github.com/liuyehcf/common-gtools/utils"
 	"testing"
 	"time"
 )
@@ -23,7 +23,7 @@ func TestNoFilter(t *testing.T) {
 	logger.Info("you can see this once")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[ROOT]-[filter_test.go:23] --- you can see this once\n", content)
+	utils.AssertTrue(content == "[INFO]-[ROOT]-[filter_test.go:23] --- you can see this once\n", content)
 }
 
 func TestTwoSameFilters(t *testing.T) {
@@ -49,7 +49,7 @@ func TestTwoSameFilters(t *testing.T) {
 	logger.Error("you can see this twice", time.Now())
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[ROOT]-[filter_test.go:47] --- you can see this twice\n"+
+	utils.AssertTrue(content == "[INFO]-[ROOT]-[filter_test.go:47] --- you can see this twice\n"+
 		"[ERROR]-[ROOT]-[filter_test.go:49] --- you can see this twice\n", content)
 }
 
@@ -75,7 +75,7 @@ func TestTwoDifferentFilters(t *testing.T) {
 	logger.Error("you can see this once", time.Now())
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[ERROR]-[ROOT]-[filter_test.go:75] --- you can see this once\n", content)
+	utils.AssertTrue(content == "[ERROR]-[ROOT]-[filter_test.go:75] --- you can see this once\n", content)
 }
 
 func TestNilFilter(t *testing.T) {
@@ -94,5 +94,5 @@ func TestNilFilter(t *testing.T) {
 	logger.Info("you can see this once")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[ROOT]-[filter_test.go:94] --- you can see this once\n", content)
+	utils.AssertTrue(content == "[INFO]-[ROOT]-[filter_test.go:94] --- you can see this once\n", content)
 }

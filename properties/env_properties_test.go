@@ -2,7 +2,7 @@ package properties
 
 import (
 	"fmt"
-	"github.com/liuyehcf/common-gtools/assert"
+	"github.com/liuyehcf/common-gtools/utils"
 	"os"
 	"testing"
 	"time"
@@ -17,27 +17,27 @@ func TestBoolWithDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value = GetBoolOrDefaultFromEnv(name, true)
-	assert.AssertTrue(value, "test")
+	utils.AssertTrue(value, "test")
 	value = GetBoolOrDefaultFromEnv(name, false)
-	assert.AssertFalse(value, "test")
+	utils.AssertFalse(value, "test")
 
 	_ = os.Setenv(name, "wrong")
 	value = GetBoolOrDefaultFromEnv(name, true)
-	assert.AssertTrue(value, "test")
+	utils.AssertTrue(value, "test")
 	value = GetBoolOrDefaultFromEnv(name, false)
-	assert.AssertFalse(value, "test")
+	utils.AssertFalse(value, "test")
 
 	_ = os.Setenv(name, "true")
 	value = GetBoolOrDefaultFromEnv(name, true)
-	assert.AssertTrue(value, "test")
+	utils.AssertTrue(value, "test")
 	value = GetBoolOrDefaultFromEnv(name, false)
-	assert.AssertTrue(value, "test")
+	utils.AssertTrue(value, "test")
 
 	_ = os.Setenv(name, "false")
 	value = GetBoolOrDefaultFromEnv(name, true)
-	assert.AssertFalse(value, "test")
+	utils.AssertFalse(value, "test")
 	value = GetBoolOrDefaultFromEnv(name, false)
-	assert.AssertFalse(value, "test")
+	utils.AssertFalse(value, "test")
 }
 
 func TestBoolWithoutDefault(t *testing.T) {
@@ -48,21 +48,21 @@ func TestBoolWithoutDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value, err = GetBoolFromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "wrong")
 	value, err = GetBoolFromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "true")
 	value, err = GetBoolFromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(value, "test")
 
 	_ = os.Setenv(name, "false")
 	value, err = GetBoolFromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertFalse(value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertFalse(value, "test")
 }
 
 func TestStringWithDefault(t *testing.T) {
@@ -72,11 +72,11 @@ func TestStringWithDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value = GetStringOrDefaultFromEnv(name, "something")
-	assert.AssertTrue(value == "something", "test")
+	utils.AssertTrue(value == "something", "test")
 
 	_ = os.Setenv(name, "true")
 	value = GetStringOrDefaultFromEnv(name, "something")
-	assert.AssertTrue(value == "true", "test")
+	utils.AssertTrue(value == "true", "test")
 }
 
 func TestStringWithoutDefault(t *testing.T) {
@@ -87,12 +87,12 @@ func TestStringWithoutDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value, err = GetStringFromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "true")
 	value, err = GetStringFromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(value == "true", "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(value == "true", "test")
 }
 
 func TestIntWithDefault(t *testing.T) {
@@ -102,23 +102,23 @@ func TestIntWithDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value = GetIntOrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "abc")
 	value = GetIntOrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "3")
 	value = GetIntOrDefaultFromEnv(name, 6)
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetIntOrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetIntOrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestIntWithoutDefault(t *testing.T) {
@@ -129,26 +129,26 @@ func TestIntWithoutDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value, err = GetIntFromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "abc")
 	value, err = GetIntFromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "3")
 	value, err = GetIntFromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value, err = GetIntFromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value, err = GetIntFromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestInt8WithDefault(t *testing.T) {
@@ -158,23 +158,23 @@ func TestInt8WithDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value = GetInt8OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "abc")
 	value = GetInt8OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "3")
 	value = GetInt8OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "077")
 	value = GetInt8OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(63 == value, "test")
+	utils.AssertTrue(63 == value, "test")
 
 	_ = os.Setenv(name, "0xf")
 	value = GetInt8OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(15 == value, "test")
+	utils.AssertTrue(15 == value, "test")
 }
 
 func TestInt8WithoutDefault(t *testing.T) {
@@ -185,26 +185,26 @@ func TestInt8WithoutDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value, err = GetInt8FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "abc")
 	value, err = GetInt8FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "3")
 	value, err = GetInt8FromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "077")
 	value, err = GetInt8FromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(63 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(63 == value, "test")
 
 	_ = os.Setenv(name, "0xf")
 	value, err = GetInt8FromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(15 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(15 == value, "test")
 }
 
 func TestInt16WithDefault(t *testing.T) {
@@ -214,23 +214,23 @@ func TestInt16WithDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value = GetInt16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "abc")
 	value = GetInt16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "3")
 	value = GetInt16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetInt16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetInt16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestInt16WithoutDefault(t *testing.T) {
@@ -241,24 +241,24 @@ func TestInt16WithoutDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value, err = GetInt16FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "abc")
 	value, err = GetInt16FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "3")
 	value, err = GetInt16FromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetInt16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetInt16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestInt32WithDefault(t *testing.T) {
@@ -268,23 +268,23 @@ func TestInt32WithDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value = GetInt32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "abc")
 	value = GetInt32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "3")
 	value = GetInt32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetInt32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetInt32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestInt32WithoutDefault(t *testing.T) {
@@ -295,24 +295,24 @@ func TestInt32WithoutDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value, err = GetInt32FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "abc")
 	value, err = GetInt32FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "3")
 	value, err = GetInt32FromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetInt32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetInt32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestInt64WithDefault(t *testing.T) {
@@ -322,23 +322,23 @@ func TestInt64WithDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value = GetInt64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "abc")
 	value = GetInt64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "3")
 	value = GetInt64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetInt64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetInt64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestInt64WithoutDefault(t *testing.T) {
@@ -349,24 +349,24 @@ func TestInt64WithoutDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value, err = GetInt64FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "abc")
 	value, err = GetInt64FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "3")
 	value, err = GetInt64FromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetInt64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetInt64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestUintWithDefault(t *testing.T) {
@@ -376,23 +376,23 @@ func TestUintWithDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value = GetUintOrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "abc")
 	value = GetUintOrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "3")
 	value = GetUintOrDefaultFromEnv(name, 6)
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetUintOrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetUintOrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestUintWithoutDefault(t *testing.T) {
@@ -403,24 +403,24 @@ func TestUintWithoutDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value, err = GetUintFromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "abc")
 	value, err = GetUintFromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "3")
 	value, err = GetUintFromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetUintOrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetUintOrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestUint8WithDefault(t *testing.T) {
@@ -430,23 +430,23 @@ func TestUint8WithDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value = GetUint8OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "abc")
 	value = GetUint8OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "3")
 	value = GetUint8OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "077")
 	value = GetUint8OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(63 == value, "test")
+	utils.AssertTrue(63 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetUint8OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestUint8WithoutDefault(t *testing.T) {
@@ -457,24 +457,24 @@ func TestUint8WithoutDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value, err = GetUint8FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "abc")
 	value, err = GetUint8FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "3")
 	value, err = GetUint8FromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "077")
 	value = GetUint8OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(63 == value, "test")
+	utils.AssertTrue(63 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetUint8OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestUint16WithDefault(t *testing.T) {
@@ -484,23 +484,23 @@ func TestUint16WithDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value = GetUint16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "abc")
 	value = GetUint16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "3")
 	value = GetUint16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetUint16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetUint16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestUint16WithoutDefault(t *testing.T) {
@@ -511,24 +511,24 @@ func TestUint16WithoutDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value, err = GetUint16FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "abc")
 	value, err = GetUint16FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "3")
 	value, err = GetUint16FromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetUint16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetUint16OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestUint32WithDefault(t *testing.T) {
@@ -538,23 +538,23 @@ func TestUint32WithDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value = GetUint32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "abc")
 	value = GetUint32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "3")
 	value = GetUint32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetUint32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetUint32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestUint32WithoutDefault(t *testing.T) {
@@ -565,24 +565,24 @@ func TestUint32WithoutDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value, err = GetUint32FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "abc")
 	value, err = GetUint32FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "3")
 	value, err = GetUint32FromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetUint32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetUint32OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestUint64WithDefault(t *testing.T) {
@@ -592,23 +592,23 @@ func TestUint64WithDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value = GetUint64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "abc")
 	value = GetUint64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(6 == value, "test")
+	utils.AssertTrue(6 == value, "test")
 
 	_ = os.Setenv(name, "3")
 	value = GetUint64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetUint64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetUint64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func TestUint64WithoutDefault(t *testing.T) {
@@ -619,24 +619,24 @@ func TestUint64WithoutDefault(t *testing.T) {
 
 	_ = os.Setenv(name, "")
 	value, err = GetUint64FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "abc")
 	value, err = GetUint64FromEnv(name)
-	assert.AssertNotNil(err, "test")
+	utils.AssertNotNil(err, "test")
 
 	_ = os.Setenv(name, "3")
 	value, err = GetUint64FromEnv(name)
-	assert.AssertNil(err, "test")
-	assert.AssertTrue(3 == value, "test")
+	utils.AssertNil(err, "test")
+	utils.AssertTrue(3 == value, "test")
 
 	_ = os.Setenv(name, "0777")
 	value = GetUint64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(511 == value, "test")
+	utils.AssertTrue(511 == value, "test")
 
 	_ = os.Setenv(name, "0xff")
 	value = GetUint64OrDefaultFromEnv(name, 6)
-	assert.AssertTrue(255 == value, "test")
+	utils.AssertTrue(255 == value, "test")
 }
 
 func resetName() {

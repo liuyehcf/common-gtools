@@ -1,53 +1,53 @@
 package main
 
 import (
-	"github.com/liuyehcf/common-gtools/assert"
 	buf "github.com/liuyehcf/common-gtools/buffer"
+	"github.com/liuyehcf/common-gtools/utils"
 	"math/rand"
 	"testing"
 )
 
 func TestCase1(t *testing.T) {
 	buffer := buf.NewRecycleByteBuffer(5)
-	assert.AssertTrue(buffer.ReadableBytes() == 0, "test")
-	assert.AssertTrue(buffer.ReadIndex() == 0, "test")
-	assert.AssertTrue(buffer.WriteIndex() == 0, "test")
+	utils.AssertTrue(buffer.ReadableBytes() == 0, "test")
+	utils.AssertTrue(buffer.ReadIndex() == 0, "test")
+	utils.AssertTrue(buffer.WriteIndex() == 0, "test")
 
 	buffer.Write([]byte{1, 2})
-	assert.AssertTrue(buffer.ReadableBytes() == 2, "test")
-	assert.AssertTrue(buffer.ReadIndex() == 0, "test")
-	assert.AssertTrue(buffer.WriteIndex() == 2, "test")
+	utils.AssertTrue(buffer.ReadableBytes() == 2, "test")
+	utils.AssertTrue(buffer.ReadIndex() == 0, "test")
+	utils.AssertTrue(buffer.WriteIndex() == 2, "test")
 
 	bytes := make([]byte, 5)
 
 	n := buffer.Read(bytes)
-	assert.AssertTrue(n == 2, "test")
-	assert.AssertTrue(bytes[0] == 1, "test")
-	assert.AssertTrue(bytes[1] == 2, "test")
-	assert.AssertTrue(buffer.ReadableBytes() == 0, "test")
-	assert.AssertTrue(buffer.ReadIndex() == 2, "test")
-	assert.AssertTrue(buffer.WriteIndex() == 2, "test")
+	utils.AssertTrue(n == 2, "test")
+	utils.AssertTrue(bytes[0] == 1, "test")
+	utils.AssertTrue(bytes[1] == 2, "test")
+	utils.AssertTrue(buffer.ReadableBytes() == 0, "test")
+	utils.AssertTrue(buffer.ReadIndex() == 2, "test")
+	utils.AssertTrue(buffer.WriteIndex() == 2, "test")
 
 	buffer.Write([]byte{1, 2, 3})
-	assert.AssertTrue(buffer.ReadableBytes() == 3, "test")
-	assert.AssertTrue(buffer.ReadIndex() == 2, "test")
-	assert.AssertTrue(buffer.WriteIndex() == 0, "test")
+	utils.AssertTrue(buffer.ReadableBytes() == 3, "test")
+	utils.AssertTrue(buffer.ReadIndex() == 2, "test")
+	utils.AssertTrue(buffer.WriteIndex() == 0, "test")
 
 	buffer.Write([]byte{4, 5})
-	assert.AssertTrue(buffer.ReadableBytes() == 5, "test")
-	assert.AssertTrue(buffer.ReadIndex() == 2, "test")
-	assert.AssertTrue(buffer.WriteIndex() == 2, "test")
+	utils.AssertTrue(buffer.ReadableBytes() == 5, "test")
+	utils.AssertTrue(buffer.ReadIndex() == 2, "test")
+	utils.AssertTrue(buffer.WriteIndex() == 2, "test")
 
 	n = buffer.Read(bytes)
-	assert.AssertTrue(n == 5, "test")
-	assert.AssertTrue(bytes[0] == 1, "test")
-	assert.AssertTrue(bytes[1] == 2, "test")
-	assert.AssertTrue(bytes[2] == 3, "test")
-	assert.AssertTrue(bytes[3] == 4, "test")
-	assert.AssertTrue(bytes[4] == 5, "test")
-	assert.AssertTrue(buffer.ReadableBytes() == 0, "test")
-	assert.AssertTrue(buffer.ReadIndex() == 2, "test")
-	assert.AssertTrue(buffer.WriteIndex() == 2, "test")
+	utils.AssertTrue(n == 5, "test")
+	utils.AssertTrue(bytes[0] == 1, "test")
+	utils.AssertTrue(bytes[1] == 2, "test")
+	utils.AssertTrue(bytes[2] == 3, "test")
+	utils.AssertTrue(bytes[3] == 4, "test")
+	utils.AssertTrue(bytes[4] == 5, "test")
+	utils.AssertTrue(buffer.ReadableBytes() == 0, "test")
+	utils.AssertTrue(buffer.ReadIndex() == 2, "test")
+	utils.AssertTrue(buffer.WriteIndex() == 2, "test")
 }
 
 func TestCase2(t *testing.T) {
@@ -60,14 +60,14 @@ func TestCase2(t *testing.T) {
 		}
 
 		buffer.Write(bytes)
-		assert.AssertTrue(buffer.ReadableBytes() == i, "test")
+		utils.AssertTrue(buffer.ReadableBytes() == i, "test")
 
 		toBytes := make([]byte, i)
 		read := buffer.Read(toBytes)
-		assert.AssertTrue(read == i, "test")
+		utils.AssertTrue(read == i, "test")
 
 		for j := 0; j < i; j += 1 {
-			assert.AssertTrue(bytes[j] == toBytes[j], "test")
+			utils.AssertTrue(bytes[j] == toBytes[j], "test")
 		}
 	}
 }
@@ -76,26 +76,26 @@ func TestCase3(t *testing.T) {
 	buffer := buf.NewRecycleByteBuffer(6)
 	buffer.Write([]byte{1, 2, 3, 4, 5, 6})
 
-	assert.AssertTrue(buffer.ReadableBytes() == 6, "test")
-	assert.AssertTrue(buffer.ReadIndex() == 0, "test")
-	assert.AssertTrue(buffer.WriteIndex() == 0, "test")
+	utils.AssertTrue(buffer.ReadableBytes() == 6, "test")
+	utils.AssertTrue(buffer.ReadIndex() == 0, "test")
+	utils.AssertTrue(buffer.WriteIndex() == 0, "test")
 
 	bytes := make([]byte, 6)
 	buffer.Mark()
 	n := buffer.Read(bytes)
-	assert.AssertTrue(n == 6, "test")
-	assert.AssertTrue(buffer.ReadableBytes() == 0, "test")
-	assert.AssertTrue(buffer.ReadIndex() == 0, "test")
-	assert.AssertTrue(buffer.WriteIndex() == 0, "test")
+	utils.AssertTrue(n == 6, "test")
+	utils.AssertTrue(buffer.ReadableBytes() == 0, "test")
+	utils.AssertTrue(buffer.ReadIndex() == 0, "test")
+	utils.AssertTrue(buffer.WriteIndex() == 0, "test")
 
 	buffer.Recover()
-	assert.AssertTrue(buffer.ReadableBytes() == 6, "test")
-	assert.AssertTrue(buffer.ReadIndex() == 0, "test")
-	assert.AssertTrue(buffer.WriteIndex() == 0, "test")
+	utils.AssertTrue(buffer.ReadableBytes() == 6, "test")
+	utils.AssertTrue(buffer.ReadIndex() == 0, "test")
+	utils.AssertTrue(buffer.WriteIndex() == 0, "test")
 
 	buffer.Read(bytes)
-	assert.AssertTrue(n == 6, "test")
-	assert.AssertTrue(buffer.ReadableBytes() == 0, "test")
-	assert.AssertTrue(buffer.ReadIndex() == 0, "test")
-	assert.AssertTrue(buffer.WriteIndex() == 0, "test")
+	utils.AssertTrue(n == 6, "test")
+	utils.AssertTrue(buffer.ReadableBytes() == 0, "test")
+	utils.AssertTrue(buffer.ReadIndex() == 0, "test")
+	utils.AssertTrue(buffer.WriteIndex() == 0, "test")
 }
