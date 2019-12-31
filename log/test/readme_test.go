@@ -7,7 +7,18 @@ import (
 	"time"
 )
 
+var logger = log.GetLogger("testLogger")
+
 func TestReadMe(t *testing.T) {
+	logger.Trace("current time is {}", time.Now())
+	logger.Debug("current time is {}", time.Now())
+	logger.Info("current time is {}", time.Now())
+	logger.Warn("current time is {}", time.Now())
+	logger.Error("current time is {}", time.Now())
+	time.Sleep(1)
+}
+
+func init() {
 	leftAlign := "%-30d{2006-01-02 15:04:05.999} [%-10c] [%-10p] --- [%-20L] %-1m%n"
 	rightAlign := "%30d{2006-01-02 15:04:05.999} [%10c] [%10p] --- [%20L] %1m%n"
 	infoLevelFilter := &log.LevelFilter{
@@ -51,24 +62,5 @@ func TestReadMe(t *testing.T) {
 		},
 	})
 
-	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{commonFileAppender, errorFileAppender, stdoutAppender, stderrAppender})
-
-	stop := false
-
-	go func() {
-		for !stop {
-			logger.Trace("current time is {}", time.Now())
-			logger.Debug("current time is {}", time.Now())
-			logger.Info("current time is {}", time.Now())
-			logger.Warn("current time is {}", time.Now())
-			logger.Error("current time is {}", time.Now())
-
-			time.Sleep(time.Second)
-		}
-	}()
-
-	time.Sleep(time.Second * 5)
-
-	stop = true
-	time.Sleep(time.Second * 2)
+	log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{commonFileAppender, errorFileAppender, stdoutAppender, stderrAppender})
 }

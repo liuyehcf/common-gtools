@@ -3,6 +3,7 @@ package log
 import (
 	"errors"
 	"fmt"
+	"github.com/liuyehcf/common-gtools/utils"
 	cr "github.com/robfig/cron/v3"
 	"io/ioutil"
 	"os"
@@ -286,7 +287,7 @@ func (appender *fileAppender) getAllRollingFileMetas() []*fileMeta {
 			strings.HasSuffix(file.Name(), fileSuffix) {
 			fileMeta := appender.parseRollingFileInfo(file)
 
-			if fileMeta != nil {
+			if utils.IsNotNil(fileMeta) {
 				fileMetas = append(fileMetas, fileMeta)
 			}
 		}

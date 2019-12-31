@@ -1,6 +1,7 @@
 package log
 
 import (
+	"github.com/liuyehcf/common-gtools/utils"
 	"io"
 	"sync"
 )
@@ -56,7 +57,7 @@ func (appender *abstractAppender) DoAppend(event *LoggingEvent) {
 		appender.queue <- appender.encoder.encode(event)
 	} else {
 		for _, filter := range appender.filters {
-			if filter != nil {
+			if utils.IsNotNil(filter) {
 				if !filter.Accept(event) {
 					return
 				}

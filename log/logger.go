@@ -1,6 +1,7 @@
 package log
 
 import (
+	"github.com/liuyehcf/common-gtools/utils"
 	"os"
 	"runtime"
 	"strings"
@@ -31,7 +32,7 @@ func getLogger(name string) (*loggerImpl, bool) {
 	defer lock.RUnlock()
 
 	logger, ok := loggers[name]
-	if ok && logger != nil {
+	if ok && utils.IsNotNil(logger) {
 		return logger, true
 	}
 	return nil, false
@@ -41,7 +42,7 @@ func setOrReplaceLogger(name string, logger *loggerImpl) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	if logger, ok := loggers[name]; ok && logger != nil {
+	if logger, ok := loggers[name]; ok && utils.IsNotNil(logger) {
 		rootLogger.Warn("logger '{}' is replaced", name)
 	}
 
@@ -55,7 +56,7 @@ func removeShadowLogger(name string) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	if logger, ok := loggers[name]; ok && logger != nil && logger.isShadow {
+	if logger, ok := loggers[name]; ok && utils.IsNotNil(logger) && logger.isShadow {
 		loggers[name] = nil
 	}
 }
@@ -65,7 +66,7 @@ func foreachLogger(f func(key string, value *loggerImpl)) {
 	defer lock.RUnlock()
 
 	for key, value := range loggers {
-		if value != nil {
+		if utils.IsNotNil(value) {
 			f(key, value)
 		}
 	}
@@ -77,7 +78,7 @@ func getVirtualLogger(name string) (*virtualLogger, bool) {
 
 	logger, ok := virtualLoggers[name]
 
-	if ok && logger != nil {
+	if ok && utils.IsNotNil(logger) {
 		return logger, true
 	}
 	return nil, false
@@ -87,7 +88,7 @@ func setVirtualLoggerIfNotExist(name string, logger *virtualLogger) bool {
 	virtualLock.Lock()
 	defer virtualLock.Unlock()
 
-	if existedLogger, ok := virtualLoggers[name]; ok && existedLogger != nil {
+	if existedLogger, ok := virtualLoggers[name]; ok && utils.IsNotNil(existedLogger) {
 		return false
 	}
 
@@ -101,7 +102,7 @@ func foreachVirtualLogger(f func(key string, value *virtualLogger)) {
 	defer virtualLock.RUnlock()
 
 	for key, value := range virtualLoggers {
-		if value != nil {
+		if utils.IsNotNil(value) {
 			f(key, value)
 		}
 	}
@@ -317,7 +318,7 @@ func (logger *loggerImpl) callAllAppenders(level int, format string, values ...i
 		Values:    values,
 	}
 
-	for l := logger; l != nil; l = l.parent {
+	for l := logger; utils.IsNotNil(l); l = l.parent {
 		l.appendLoopOnAppenders(event)
 		if !l.additivity {
 			break
@@ -326,9 +327,9 @@ func (logger *loggerImpl) callAllAppenders(level int, format string, values ...i
 }
 
 func (logger *loggerImpl) appendLoopOnAppenders(event *LoggingEvent) {
-	if logger.appenders != nil {
+	if utils.IsNotNil(logger.appenders) {
 		for _, appender := range logger.appenders {
-			if appender != nil {
+			if utils.IsNotNil(appender) {
 				appender.DoAppend(event)
 			}
 		}
@@ -458,7 +459,7 @@ func (logger *virtualLogger) Error(format string, values ...interface{}) {
 }
 
 func (logger *virtualLogger) buildBoundStatusIfNecessary() {
-	if logger.target != nil {
+	if utils.IsNotNil(logger.target) {
 		return
 	}
 

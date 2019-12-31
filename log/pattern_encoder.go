@@ -2,6 +2,7 @@ package log
 
 import (
 	"bytes"
+	"github.com/liuyehcf/common-gtools/utils"
 	"strconv"
 )
 
@@ -46,7 +47,7 @@ func (encoder *patternEncoder) encode(event *LoggingEvent) []byte {
 
 	converter := encoder.head
 
-	for ; converter != nil; {
+	for ; utils.IsNotNil(converter); {
 		buffer.Write(converter.convert(event))
 		converter = converter.getNext()
 	}

@@ -79,10 +79,11 @@ func TestTwoDifferentFilters(t *testing.T) {
 }
 
 func TestNilFilter(t *testing.T) {
+	var nilLevelFilter *log.LevelFilter = nil
 	writer := log.NewStringWriter(buffer.NewRecycleByteBuffer(1024))
 	writerAppender, _ := log.NewWriterAppender(&log.AppenderConfig{
 		Layout:  "[%p]-[%c]-[%L] --- %m%n",
-		Filters: []log.Filter{nil, nil},
+		Filters: []log.Filter{nil, nilLevelFilter},
 		Writer:  writer,
 	})
 
@@ -93,5 +94,5 @@ func TestNilFilter(t *testing.T) {
 	logger.Info("you can see this once")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	assert.AssertTrue(content == "[INFO]-[ROOT]-[filter_test.go:93] --- you can see this once\n", content)
+	assert.AssertTrue(content == "[INFO]-[ROOT]-[filter_test.go:94] --- you can see this once\n", content)
 }
