@@ -197,13 +197,27 @@ func NewLogger(name string, level int, additivity bool, appenders []Appender) Lo
 func newLoggerImpl(name string, level int, additivity bool, appenders []Appender, isShadow bool) *loggerImpl {
 	var logger *loggerImpl
 
+	var actualAppenders []Appender
+	if appenders != nil {
+		actualAppenders = make([]Appender, 0)
+		for _, appender := range appenders {
+			if utils.IsNotNil(appender) {
+				actualAppenders = append(actualAppenders, appender)
+			} else {
+				rootLogger.Warn("logger '{}' contains nil appender", name)
+			}
+		}
+	} else {
+		actualAppenders = nil
+	}
+
 	if isRoot(name) {
 		name = Root
 		logger = &loggerImpl{
 			name:       name,
 			level:      level,
 			additivity: false,
-			appenders:  appenders,
+			appenders:  actualAppenders,
 			parent:     nil,
 			isShadow:   false,
 		}
@@ -231,7 +245,7 @@ func newLoggerImpl(name string, level int, additivity bool, appenders []Appender
 			name:       name,
 			level:      level,
 			additivity: additivity,
-			appenders:  appenders,
+			appenders:  actualAppenders,
 			parent:     rootLogger,
 			isShadow:   isShadow,
 		}

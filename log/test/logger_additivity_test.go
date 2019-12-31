@@ -55,7 +55,8 @@ func TestChangeRootLogger(t *testing.T) {
 	log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{nil})
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	utils.AssertTrue(content == "[WARN]-[ROOT]-[logger.go:210] --- logger 'ROOT' is replaced\n", content)
+	utils.AssertTrue(content == "[WARN]-[ROOT]-[logger.go:191] --- logger 'ROOT' contains nil appender\n"+
+		"[WARN]-[ROOT]-[logger.go:224] --- logger 'ROOT' is replaced\n", content)
 
 	logger.Info("you can see this once")
 	time.Sleep(time.Millisecond * 10)

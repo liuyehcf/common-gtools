@@ -83,7 +83,7 @@ func TestChangeTargetLogger(t *testing.T) {
 	newLogger.Error("you can see this error log")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	utils.AssertTrue(content == "[WARN]-[ROOT]-[logger.go:210] --- logger 'ROOT' is replaced\n"+
+	utils.AssertTrue(content == "[WARN]-[ROOT]-[logger.go:224] --- logger 'ROOT' is replaced\n"+
 		"[TRACE]-[ROOT]-[virtual_logger_test.go:74] --- you can see this trace log\n"+
 		"[TRACE]-[ROOT]-[virtual_logger_test.go:75] --- you can see this trace log\n"+
 		"[DEBUG]-[ROOT]-[virtual_logger_test.go:76] --- you can see this debug log\n"+
