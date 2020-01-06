@@ -29,13 +29,13 @@ type fileMeta struct {
 	day          string
 	hour         string
 	index        string
-	dayValue     int
+	dayValue     int64
 	hourValue    int
 	indexValue   int
 }
 
 func newFileMeta(abstractPath string, day string, hour string, index string) *fileMeta {
-	var dayValue int
+	var dayValue int64
 	var hourValue int
 	var indexValue int
 	var err error
@@ -48,7 +48,7 @@ func newFileMeta(abstractPath string, day string, hour string, index string) *fi
 			return nil
 		}
 
-		dayValue = dayTime.Second()
+		dayValue = dayTime.Unix()
 	}
 
 	if hour == emptyString {
@@ -379,7 +379,7 @@ func (appender *fileAppender) rollingFilesByDayGranularity(allRollingFileMetas f
 	now := time.Now()
 	dayFormatted := now.Format(formatDay)
 	dayTime, _ := time.Parse(formatDay, dayFormatted)
-	day := dayTime.Second()
+	day := dayTime.Unix()
 
 	policy := appender.policy
 

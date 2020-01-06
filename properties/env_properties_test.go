@@ -640,5 +640,5 @@ func TestUint64WithoutDefault(t *testing.T) {
 }
 
 func resetName() {
-	name = fmt.Sprintf("testName_%d", time.Now().Second())
+	name = fmt.Sprintf("testName_%d", time.Now().UnixNano())
 }
