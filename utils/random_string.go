@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"math/rand"
+	"time"
 )
 
 const (
@@ -45,4 +46,8 @@ func randomString(runes []rune, length int) string {
 	}
 
 	return buffer.String()
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }
