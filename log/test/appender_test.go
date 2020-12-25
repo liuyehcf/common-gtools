@@ -37,3 +37,65 @@ func TestNilAppender(t *testing.T) {
 	content = writer.ReadString()
 	utils.AssertTrue(content == "[INFO]-[ROOT]-[appender_test.go:35] --- you can see this once\n", content)
 }
+
+func TestFileAppender(t *testing.T) {
+	_, err := log.NewFileAppender(&log.AppenderConfig{
+		Layout: "[%p]-[%c]-[%L] --- %m%n",
+		FileRollingPolicy: &log.RollingPolicy{
+			Directory:       "/tmp",
+			FileName:        "test",
+			MaxHistory:      100,
+			MaxFileSize:     100,
+			TimeGranularity: log.TimeGranularityNone,
+		},
+	})
+	utils.AssertNil(err, "test")
+
+	_, err = log.NewFileAppender(&log.AppenderConfig{
+		Layout: "[%p]-[%c]-[%L] --- %m%n",
+		FileRollingPolicy: &log.RollingPolicy{
+			Directory:       "/tmp",
+			FileName:        "test",
+			MaxHistory:      100,
+			MaxFileSize:     100,
+			TimeGranularity: log.TimeGranularityHour,
+		},
+	})
+	utils.AssertNil(err, "test")
+
+	_, err = log.NewFileAppender(&log.AppenderConfig{
+		Layout: "[%p]-[%c]-[%L] --- %m%n",
+		FileRollingPolicy: &log.RollingPolicy{
+			Directory:       "/tmp",
+			FileName:        "test",
+			MaxHistory:      100,
+			MaxFileSize:     100,
+			TimeGranularity: log.TimeGranularityDay,
+		},
+	})
+	utils.AssertNil(err, "test")
+
+	_, err = log.NewFileAppender(&log.AppenderConfig{
+		Layout: "[%p]-[%c]-[%L] --- %m%n",
+		FileRollingPolicy: &log.RollingPolicy{
+			Directory:       "/tmp",
+			FileName:        "test",
+			MaxHistory:      100,
+			MaxFileSize:     100,
+			TimeGranularity: log.TimeGranularityWeek,
+		},
+	})
+	utils.AssertNil(err, "test")
+
+	_, err = log.NewFileAppender(&log.AppenderConfig{
+		Layout: "[%p]-[%c]-[%L] --- %m%n",
+		FileRollingPolicy: &log.RollingPolicy{
+			Directory:       "/tmp",
+			FileName:        "test",
+			MaxHistory:      100,
+			MaxFileSize:     100,
+			TimeGranularity: log.TimeGranularityMonth,
+		},
+	})
+	utils.AssertNil(err, "test")
+}
