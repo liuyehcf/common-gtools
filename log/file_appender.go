@@ -15,12 +15,24 @@ import (
 )
 
 const (
-	TimeGranularityHour = int(1)
-	TimeGranularityDay  = int(2)
-	formatDay           = "2006-01-02"
-	emptyString         = ""
-	fileSuffix          = ".log"
-	pathSeparator       = string(os.PathSeparator)
+	TimeGranularityNone  = int(0)
+	TimeGranularityHour  = int(1)
+	TimeGranularityDay   = int(2)
+	TimeGranularityWeek  = int(3)
+	TimeGranularityMonth = int(4)
+	formatDay            = "2006-01-02"
+	emptyString          = ""
+	fileSuffix           = ".log"
+	pathSeparator        = string(os.PathSeparator)
+)
+
+var (
+	timeGranularityMap = map[int]string{
+		TimeGranularityHour:  "@hourly",
+		TimeGranularityDay:   "@daily",
+		TimeGranularityWeek:  "@weekly",
+		TimeGranularityMonth: "@monthly",
+	}
 )
 
 type fileMeta struct {
@@ -143,8 +155,12 @@ func NewFileAppender(config *AppenderConfig) (*fileAppender, error) {
 	if strings.Contains(policy.FileName, ".") {
 		return nil, errors.New("file name contains '.'")
 	}
-	if TimeGranularityHour != policy.TimeGranularity && TimeGranularityDay != policy.TimeGranularity {
-		return nil, errors.New("TimeGranularity only support 1(TimeGranularityHour) and 2(TimeGranularityDay)")
+	if TimeGranularityNone != policy.TimeGranularity &&
+		TimeGranularityHour != policy.TimeGranularity &&
+		TimeGranularityDay != policy.TimeGranularity &&
+		TimeGranularityWeek != policy.TimeGranularity &&
+		TimeGranularityMonth != policy.TimeGranularity {
+		return nil, errors.New("TimeGranularity only support 0(TimeGranularityNone) or 1(TimeGranularityHour) or 2(TimeGranularityDay) or 3(TimeGranularityWeek) or 4(TimeGranularityMonth)")
 	}
 	if policy.MaxHistory < 1 {
 		return nil, errors.New("MaxHistory must large than 0")
@@ -187,23 +203,14 @@ func NewFileAppender(config *AppenderConfig) (*fileAppender, error) {
 		return nil, err
 	}
 
-	switch policy.TimeGranularity {
-	case TimeGranularityHour:
-		_, err := appender.cron.AddFunc("@hourly", func() {
+	timeGranularity, exist := timeGranularityMap[policy.TimeGranularity]
+	if exist {
+		_, err := appender.cron.AddFunc(timeGranularity, func() {
 			appender.rollingByTimer()
 		})
 		if err != nil {
 			return nil, err
 		}
-		break
-	case TimeGranularityDay:
-		_, err := appender.cron.AddFunc("@daily", func() {
-			appender.rollingByTimer()
-		})
-		if err != nil {
-			return nil, err
-		}
-		break
 	}
 
 	go appender.onEventLoop()
@@ -250,15 +257,22 @@ func (appender *fileAppender) rollingIfFileSizeExceeded() {
 	}
 
 	if info.Size() >= appender.policy.MaxFileSize {
-		appender.doSizeRolling()
+		appender.doRolling()
 	}
 }
 
 func (appender *fileAppender) rollingByTimer() {
-	appender.doSizeRolling()
+	info, err := appender.file.Stat()
+	if err != nil {
+		return
+	}
+
+	if info.Size() > 0 {
+		appender.doRolling()
+	}
 }
 
-func (appender *fileAppender) doSizeRolling() {
+func (appender *fileAppender) doRolling() {
 	appender.lock.Lock()
 	defer appender.lock.Unlock()
 
@@ -268,7 +282,10 @@ func (appender *fileAppender) doSizeRolling() {
 	case TimeGranularityHour:
 		appender.rollingFilesByHourGranularity(fileMetas)
 		break
+	case TimeGranularityNone:
 	case TimeGranularityDay:
+	case TimeGranularityWeek:
+	case TimeGranularityMonth:
 		appender.rollingFilesByDayGranularity(fileMetas)
 		break
 	}
