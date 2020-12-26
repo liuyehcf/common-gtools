@@ -110,7 +110,7 @@ func (slice fileMetaSlice) Less(i, j int) bool {
 		} else if left.hourValue > right.hourValue {
 			return false
 		} else {
-			return left.indexValue >= right.indexValue
+			return left.indexValue <= right.indexValue
 		}
 	}
 }
@@ -378,10 +378,17 @@ func (appender *fileAppender) rollingFilesByHourGranularity(rollingType int, all
 		}
 	}
 
+	latestIndex := 0
+	if len(fileMetasOfCurHour) > 0 {
+		sort.Sort(fileMetasOfCurHour)
+		latestFileMeta := fileMetasOfCurHour[len(fileMetasOfCurHour)-1]
+		latestIndex = latestFileMeta.indexValue
+	}
+
 	_ = appender.file.Close()
 
 	_ = os.Rename(appender.fileAbstractPath,
-		fmt.Sprintf("%s.%s.%02d.%d%s", appender.fileAbstractName, dayFormatted, hour, len(fileMetasOfCurHour)+1, fileSuffix))
+		fmt.Sprintf("%s.%s.%02d.%d%s", appender.fileAbstractName, dayFormatted, hour, latestIndex+1, fileSuffix))
 
 	_ = appender.createFileIfNecessary()
 }
@@ -419,10 +426,17 @@ func (appender *fileAppender) rollingFilesByDayGranularity(rollingType int, allR
 		}
 	}
 
+	latestIndex := 0
+	if len(fileMetasOfCurDay) > 0 {
+		sort.Sort(fileMetasOfCurDay)
+		latestFileMeta := fileMetasOfCurDay[len(fileMetasOfCurDay)-1]
+		latestIndex = latestFileMeta.indexValue
+	}
+
 	_ = appender.file.Close()
 
 	_ = os.Rename(appender.fileAbstractPath,
-		fmt.Sprintf("%s.%s.%d%s", appender.fileAbstractName, dayFormatted, len(fileMetasOfCurDay)+1, fileSuffix))
+		fmt.Sprintf("%s.%s.%d%s", appender.fileAbstractName, dayFormatted, latestIndex+1, fileSuffix))
 
 	_ = appender.createFileIfNecessary()
 }

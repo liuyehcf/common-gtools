@@ -14,7 +14,6 @@ const (
 var logger = log.GetLogger("Promise")
 
 type Promise interface {
-
 	// return true if this task was canceled before it completed normally
 	IsCanceled() bool
 

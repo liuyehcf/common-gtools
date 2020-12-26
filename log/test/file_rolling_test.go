@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -18,10 +17,6 @@ func TestRollingByHour(t *testing.T) {
 		name := fileInfo.Name()
 		segments := strings.Split(name, ".")
 		utils.AssertTrue(len(segments) == 5, "test")
-
-		index, err := strconv.Atoi(segments[len(segments)-2])
-		utils.AssertNil(err, "test")
-		utils.AssertTrue(0 < index && index <= history, "test")
 	})
 }
 
@@ -31,10 +26,6 @@ func TestRollingByDay(t *testing.T) {
 		name := fileInfo.Name()
 		segments := strings.Split(name, ".")
 		utils.AssertTrue(len(segments) == 4, "test")
-
-		index, err := strconv.Atoi(segments[len(segments)-2])
-		utils.AssertNil(err, "test")
-		utils.AssertTrue(0 < index && index <= history, "test")
 	})
 }
 

@@ -101,7 +101,7 @@ func TestIndexDiff(t *testing.T) {
 	sort.Sort(metas)
 
 	for i := 0; i < len(metas); i += 1 {
-		utils.AssertTrue(metas[i].indexValue == toIndex-i, "test")
+		utils.AssertTrue(metas[i].indexValue == i+1, "test")
 	}
 }
 
