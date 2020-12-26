@@ -345,9 +345,16 @@ func (appender *fileAppender) parseRollingFileInfo(fileInfo os.FileInfo) *fileMe
 }
 
 func (appender *fileAppender) rollingFilesByHourGranularity(rollingType int, allRollingFileMetas fileMetaSlice) {
-	now := time.Now()
-	dayFormatted := now.Format(formatDay)
-	hour := now.Hour()
+	var t time.Time
+	if rollingType == timerRolling {
+		t = time.Now().Add(-time.Hour)
+	} else {
+		t = time.Now()
+	}
+	dayFormatted := t.Format(formatDay)
+	dayTime, _ := time.Parse(formatDay, dayFormatted)
+	day := dayTime.Unix()
+	hour := t.Hour()
 
 	policy := appender.policy
 
@@ -366,32 +373,28 @@ func (appender *fileAppender) rollingFilesByHourGranularity(rollingType int, all
 	fileMetasOfCurHour := make(fileMetaSlice, 0)
 
 	for _, fileMeta := range allRollingFileMetas {
-		if fileMeta.hourValue == hour {
+		if fileMeta.dayValue == day &&
+			fileMeta.hourValue == hour {
 			fileMetasOfCurHour = append(fileMetasOfCurHour, fileMeta)
 		}
-	}
-
-	sort.Sort(fileMetasOfCurHour)
-
-	for i := 0; i < fileMetasOfCurHour.Len(); i += 1 {
-		fileMeta := fileMetasOfCurHour[i]
-
-		// dir/xxx.2006-01-02.08.1.log
-		_ = os.Rename(fileMeta.abstractPath,
-			fmt.Sprintf("%s.%s.%s.%d%s", appender.fileAbstractName, fileMeta.day, fileMeta.hour, fileMeta.indexValue+1, fileSuffix))
 	}
 
 	_ = appender.file.Close()
 
 	_ = os.Rename(appender.fileAbstractPath,
-		fmt.Sprintf("%s.%s.%02d.%d%s", appender.fileAbstractName, dayFormatted, hour, 0, fileSuffix))
+		fmt.Sprintf("%s.%s.%02d.%d%s", appender.fileAbstractName, dayFormatted, hour, len(fileMetasOfCurHour)+1, fileSuffix))
 
 	_ = appender.createFileIfNecessary()
 }
 
 func (appender *fileAppender) rollingFilesByDayGranularity(rollingType int, allRollingFileMetas fileMetaSlice) {
-	now := time.Now()
-	dayFormatted := now.Format(formatDay)
+	var t time.Time
+	if rollingType == timerRolling {
+		t = time.Now().Add(-24 * time.Hour)
+	} else {
+		t = time.Now()
+	}
+	dayFormatted := t.Format(formatDay)
 	dayTime, _ := time.Parse(formatDay, dayFormatted)
 	day := dayTime.Unix()
 
@@ -417,19 +420,10 @@ func (appender *fileAppender) rollingFilesByDayGranularity(rollingType int, allR
 		}
 	}
 
-	sort.Sort(fileMetasOfCurDay)
-
-	for i := 0; i < fileMetasOfCurDay.Len(); i += 1 {
-		fileMeta := fileMetasOfCurDay[i]
-
-		_ = os.Rename(fileMeta.abstractPath,
-			fmt.Sprintf("%s.%s.%d%s", appender.fileAbstractName, fileMeta.day, fileMeta.indexValue+1, fileSuffix))
-	}
-
 	_ = appender.file.Close()
 
 	_ = os.Rename(appender.fileAbstractPath,
-		fmt.Sprintf("%s.%s.%d%s", appender.fileAbstractName, dayFormatted, 0, fileSuffix))
+		fmt.Sprintf("%s.%s.%d%s", appender.fileAbstractName, dayFormatted, len(fileMetasOfCurDay)+1, fileSuffix))
 
 	_ = appender.createFileIfNecessary()
 }
