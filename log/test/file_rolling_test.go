@@ -21,7 +21,7 @@ func TestRollingByHour(t *testing.T) {
 
 		index, err := strconv.Atoi(segments[len(segments)-2])
 		utils.AssertNil(err, "test")
-		utils.AssertTrue(0 <= index && index < history, "test")
+		utils.AssertTrue(0 < index && index <= history, "test")
 	})
 }
 
@@ -34,7 +34,7 @@ func TestRollingByDay(t *testing.T) {
 
 		index, err := strconv.Atoi(segments[len(segments)-2])
 		utils.AssertNil(err, "test")
-		utils.AssertTrue(0 <= index && index < history, "test")
+		utils.AssertTrue(0 < index && index <= history, "test")
 	})
 }
 
