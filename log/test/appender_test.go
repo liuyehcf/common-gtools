@@ -74,28 +74,4 @@ func TestFileAppender(t *testing.T) {
 		},
 	})
 	utils.AssertNil(err, "test")
-
-	_, err = log.NewFileAppender(&log.AppenderConfig{
-		Layout: "[%p]-[%c]-[%L] --- %m%n",
-		FileRollingPolicy: &log.RollingPolicy{
-			Directory:       "/tmp",
-			FileName:        "test",
-			MaxHistory:      100,
-			MaxFileSize:     100,
-			TimeGranularity: log.TimeGranularityWeek,
-		},
-	})
-	utils.AssertNil(err, "test")
-
-	_, err = log.NewFileAppender(&log.AppenderConfig{
-		Layout: "[%p]-[%c]-[%L] --- %m%n",
-		FileRollingPolicy: &log.RollingPolicy{
-			Directory:       "/tmp",
-			FileName:        "test",
-			MaxHistory:      100,
-			MaxFileSize:     100,
-			TimeGranularity: log.TimeGranularityMonth,
-		},
-	})
-	utils.AssertNil(err, "test")
 }
