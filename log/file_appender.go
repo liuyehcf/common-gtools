@@ -281,8 +281,7 @@ func (appender *fileAppender) doRolling(rollingType int) {
 	case TimeGranularityHour:
 		appender.rollingFilesByHourGranularity(rollingType, fileMetas)
 		break
-	case TimeGranularityNone:
-	case TimeGranularityDay:
+	case TimeGranularityNone, TimeGranularityDay:
 		appender.rollingFilesByDayGranularity(rollingType, fileMetas)
 		break
 	}
@@ -332,7 +331,7 @@ func (appender *fileAppender) parseRollingFileInfo(fileInfo os.FileInfo) *fileMe
 		} else {
 			return nil
 		}
-	case TimeGranularityDay:
+	case TimeGranularityNone, TimeGranularityDay:
 		// xxx.2006-01-02.1.log
 		if segmentLen == 4 {
 			return newFileMeta(abstractPath, segments[1], "", segments[2])
