@@ -56,7 +56,6 @@ package main
 import (
 	"github.com/liuyehcf/common-gtools/log"
 	"os"
-	"testing"
 	"time"
 )
 
@@ -68,12 +67,11 @@ func main() {
 	logger.Info("current time is {}", time.Now())
 	logger.Warn("current time is {}", time.Now())
 	logger.Error("current time is {}", time.Now())
-	time.Sleep(1)
+	time.Sleep(time.Second)
 }
 
 func init() {
-	leftAlign := "%-30d{2006-01-02 15:04:05.999} [%-10c] [%-10p] --- [%-20L] %-1m%n"
-	rightAlign := "%30d{2006-01-02 15:04:05.999} [%10c] [%10p] --- [%20L] %1m%n"
+	layout := "%-24d{2006-01-02 15:04:05.999} [%-10c] [%-5p] --- [%L] %m%n"
 	infoLevelFilter := &log.LevelFilter{
 		LogLevelThreshold: log.InfoLevel,
 	}
@@ -81,18 +79,18 @@ func init() {
 		LogLevelThreshold: log.ErrorLevel,
 	}
 	stdoutAppender, _ := log.NewWriterAppender(&log.AppenderConfig{
-		Layout:  leftAlign,
+		Layout:  layout,
 		Filters: []log.Filter{infoLevelFilter},
 		Writer:  os.Stdout,
 	})
 	stderrAppender, _ := log.NewWriterAppender(&log.AppenderConfig{
-		Layout:  rightAlign,
+		Layout:  layout,
 		Filters: []log.Filter{errorLevelFilter},
 		Writer:  os.Stderr,
 	})
 
 	commonFileAppender, _ := log.NewFileAppender(&log.AppenderConfig{
-		Layout:  leftAlign,
+		Layout:  layout,
 		Filters: []log.Filter{infoLevelFilter},
 		FileRollingPolicy: &log.RollingPolicy{
 			Directory:       "/tmp/gtools/logs",
@@ -104,7 +102,7 @@ func init() {
 	})
 
 	errorFileAppender, _ := log.NewFileAppender(&log.AppenderConfig{
-		Layout:  rightAlign,
+		Layout:  layout,
 		Filters: []log.Filter{errorLevelFilter},
 		FileRollingPolicy: &log.RollingPolicy{
 			Directory:       "/tmp/gtools/logs",
