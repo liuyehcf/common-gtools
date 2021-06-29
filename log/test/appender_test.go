@@ -4,6 +4,7 @@ import (
 	"github.com/liuyehcf/common-gtools/buffer"
 	"github.com/liuyehcf/common-gtools/log"
 	"github.com/liuyehcf/common-gtools/utils"
+	"os"
 	"testing"
 	"time"
 )
@@ -74,4 +75,19 @@ func TestFileAppender(t *testing.T) {
 		},
 	})
 	utils.AssertNil(err, "test")
+}
+
+func TestFileRemove(t *testing.T) {
+	file, err := os.OpenFile("/tmp/test_file_remove.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	utils.AssertNil(err, "test")
+
+	err = os.Remove(file.Name())
+	utils.AssertNil(err, "test")
+
+	_, err = file.Write([]byte("hello"))
+	utils.AssertNil(err, "test")
+
+	_, err = file.Stat()
+	utils.AssertNotNil(err, "test")
+	utils.AssertTrue(os.IsNotExist(err), "test")
 }

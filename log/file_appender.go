@@ -194,7 +194,7 @@ func NewFileAppender(config *AppenderConfig) (*fileAppender, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = appender.createFileIfNecessary()
+	err = appender.openOrCreateFile()
 	if err != nil {
 		return nil, err
 	}
@@ -202,6 +202,7 @@ func NewFileAppender(config *AppenderConfig) (*fileAppender, error) {
 	timeGranularity, exist := timeGranularityMap[policy.TimeGranularity]
 	if exist {
 		_, err := appender.cron.AddFunc(timeGranularity, func() {
+			appender.createFileIfNecessary()
 			appender.rollingByTimer()
 		})
 		if err != nil {
@@ -241,6 +242,7 @@ func (appender *fileAppender) onEventLoop() {
 			// channel is closed
 			break
 		}
+		appender.createFileIfNecessary()
 		appender.rollingIfFileSizeExceeded()
 		appender.write(content)
 	}
@@ -390,7 +392,7 @@ func (appender *fileAppender) rollingFilesByHourGranularity(rollingType int, all
 	_ = os.Rename(appender.fileAbstractPath,
 		fmt.Sprintf("%s.%s.%02d.%d%s", appender.fileAbstractName, dayFormatted, hour, latestIndex+1, fileSuffix))
 
-	_ = appender.createFileIfNecessary()
+	_ = appender.openOrCreateFile()
 }
 
 func (appender *fileAppender) rollingFilesByDayGranularity(rollingType int, allRollingFileMetas fileMetaSlice) {
@@ -438,14 +440,22 @@ func (appender *fileAppender) rollingFilesByDayGranularity(rollingType int, allR
 	_ = os.Rename(appender.fileAbstractPath,
 		fmt.Sprintf("%s.%s.%d%s", appender.fileAbstractName, dayFormatted, latestIndex+1, fileSuffix))
 
-	_ = appender.createFileIfNecessary()
+	_ = appender.openOrCreateFile()
 }
 
 func (appender *fileAppender) createDirectoryIfNecessary() error {
 	return os.MkdirAll(appender.policy.Directory, os.ModePerm)
 }
 
-func (appender *fileAppender) createFileIfNecessary() error {
+func (appender *fileAppender) createFileIfNecessary() {
+	_, err := os.Stat(appender.fileAbstractPath)
+	// fd still can be operated while file already removed by other process
+	if err != nil {
+		_ = appender.openOrCreateFile()
+	}
+}
+
+func (appender *fileAppender) openOrCreateFile() error {
 	var err error
 	appender.file, err = os.OpenFile(appender.fileAbstractPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	return err
