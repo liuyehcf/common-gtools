@@ -30,10 +30,6 @@ func TestRollingByDay(t *testing.T) {
 }
 
 func rolling(timeGranularity int, history int, fileAssert func(os.FileInfo)) {
-	command := exec.Command("/bin/bash", "-c", "rm -rf /tmp/gtools")
-	err := command.Run()
-	utils.AssertNil(err, "test")
-
 	direct := "/tmp/gtools/logs"
 	fileName := "rolling"
 	stop := false
@@ -52,6 +48,10 @@ func rolling(timeGranularity int, history int, fileAssert func(os.FileInfo)) {
 
 	logger := log.NewLogger(log.Root, log.InfoLevel, false, []log.Appender{commonFileAppender})
 
+	command := exec.Command("/bin/bash", "-c", "rm -rf /tmp/gtools")
+	err := command.Run()
+	utils.AssertNil(err, "test")
+
 	go func() {
 		for !stop {
 			logger.Info("now: '{}'", time.Now())
@@ -65,7 +65,10 @@ func rolling(timeGranularity int, history int, fileAssert func(os.FileInfo)) {
 	go func() {
 		for !stop {
 			fileInfos, err := ioutil.ReadDir(direct)
-			utils.AssertNil(err, "test")
+			if err != nil {
+				time.Sleep(time.Microsecond)
+				continue
+			}
 			fileNum := len(fileInfos)
 			// if a file is being renamed, we can't find it here
 			utils.AssertTrue(fileNum <= history+1, "test")

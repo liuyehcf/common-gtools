@@ -36,7 +36,7 @@ func TestNilAppender(t *testing.T) {
 	logger.Info("you can see this once")
 	time.Sleep(time.Millisecond * 10)
 	content = writer.ReadString()
-	utils.AssertTrue(content == "[INFO]-[ROOT]-[appender_test.go:35] --- you can see this once\n", content)
+	utils.AssertTrue(content == "[INFO]-[ROOT]-[appender_test.go:36] --- you can see this once\n", content)
 }
 
 func TestFileAppender(t *testing.T) {
@@ -88,6 +88,9 @@ func TestFileRemove(t *testing.T) {
 	utils.AssertNil(err, "test")
 
 	_, err = file.Stat()
+	utils.AssertNil(err, "test")
+
+	_, err = os.Stat("/tmp/test_file_remove.txt")
 	utils.AssertNotNil(err, "test")
 	utils.AssertTrue(os.IsNotExist(err), "test")
 }
